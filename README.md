@@ -43,6 +43,6 @@ require("supermaven-nvim").setup({
 
 ## Usage
 
-Upon starting supermaven-nvim, you will be prompted to either use the Free Tier with the command `:SupermavenUseFree` or to activate a Supermaven Pro subscription by following a link, which will connect you Supermaven account.
+Upon starting supermaven-nvim, you will be prompted to either use the Free Tier with the command `:SupermavenUseFree` or to activate a Supermaven Pro subscription by following a link, which will connect your Supermaven account.
 
 If Supermaven is set up, you can use `:SupermavenLogout` to switch versions.
