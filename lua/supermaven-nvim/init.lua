@@ -19,13 +19,13 @@ M.setup = function(args)
   end
   binary:start_binary(config_settings.ignore_filetypes or {})
 
-  if config_settings.color.suggestion_color and config_settings.color.cterm then
+  if config_settings.color and config_settings.color.suggestion_color and config_settings.color.cterm then
     vim.api.nvim_create_autocmd({"VimEnter", "ColorScheme"}, {
       pattern = "*",
       callback = function(event)
         vim.api.nvim_set_hl(0, "SupermavenSuggestion", { 
-          fg = config_settings.suggestion_color,
-          ctermfg = config_settings.cterm,
+          fg = config_settings.color.suggestion_color,
+          ctermfg = config_settings.color.cterm,
         })
         completion_preview.suggestion_group = "SupermavenSuggestion"
       end
