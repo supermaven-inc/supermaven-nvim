@@ -1,10 +1,10 @@
 # Supermaven Neovim Plugin (BETA)
 
-This plugin, supermaven-nvim, lets you use [Supermaven](https://supermaven.com/) in Neovim. Please note that supermaven-nvim is still in beta and is expected to have instances of bugs, glitches, and unexpected behavior. If you encounter any issues while using supermaven-nvim, consider opening an issue or reaching out to us on [Discord](https://discord.com/invite/QQpqBmQH3w).
+This plugin, supermaven-nvim, lets you use [Supermaven](https://supermaven.com/) in Neovim. Please note that supermaven-nvim is still in beta and may have bugs and glitches. If you encounter any issues while using supermaven-nvim, consider opening an issue or reaching out to us on [Discord](https://discord.com/invite/QQpqBmQH3w).
 
 ## Installation
 
-Using a plugin manager, run the .setup({}) function in your neovim's configuration file.
+Using a plugin manager, run the .setup({}) function in your Neovim configuration file.
 
 ### Using [lazy.nvim](https://github.com/folke/lazy.nvim)
 
