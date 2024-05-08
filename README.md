@@ -23,7 +23,7 @@ require("lazy").setup({
 
 By default, supermaven-nvim will use the `<Tab>` and `<C-]>` keymaps to accept and clear suggestions. You can change these keymaps by passing a `keymaps` table to the .setup({}) function. 
 
-The `ignore_filetypes` table is used to ignore filetypes when using supermaven-nvim. If a filetype is present as a key, and its value is `true`, supermaven-nvim will not use the binary for that filetype.
+The `ignore_filetypes` table is used to ignore filetypes when using supermaven-nvim. If a filetype is present as a key, and its value is `true`, supermaven-nvim will not display suggestions for that filetype.
 
 `suggestion_color` and `cterm` options can be used to set the color of the suggestion text.
 
@@ -43,7 +43,6 @@ require("supermaven-nvim").setup({
 
 ## Usage
 
-
-Upon starting supermaven-nvim, you will be prompted to follow a link to set up Supermaven pro, or use the free version. If you set up Supermaven pro, the plugin will be ready for use immediately. The free version can be used by using the `:SupermavenUseFree` command.
+Upon starting supermaven-nvim, you will be prompted to either use the Free Tier with the command `:SupermavenUseFree` or to activate a Supermaven Pro subscription by following a link, which will connect you Supermaven account.
 
 If Supermaven is set up, you can use `:SupermavenLogout` to switch versions.

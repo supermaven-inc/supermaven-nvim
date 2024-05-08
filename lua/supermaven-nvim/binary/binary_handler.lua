@@ -186,7 +186,7 @@ function BinaryLifecycle:process_message(message)
   elseif message.kind == "active_repo" then
     -- unused, no status bar is displayed
   elseif message.kind == "service_tier" then
-    print("Supermaven is running on a " .. message.service_tier .. " tier.")
+    print("Supermaven " .. message.display .. " is running.")
     vim.schedule(
       function()
         self:close_popup()
@@ -404,7 +404,7 @@ end
 function BinaryLifecycle:show_activation_message()
   if self.activate_url ~= nil then
     print("Thanks for installing supermaven!")
-    print("Use :SupermavenUsePro to set up Supermaven pro, or use the command :SupermavenUseFree to use the free version")
+    print("Use :SupermavenUsePro to set up Supermaven pro, or use the command :SupermavenUseFree to use the Free Tier")
   end
 end
 
