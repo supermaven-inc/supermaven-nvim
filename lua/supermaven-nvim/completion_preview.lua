@@ -128,10 +128,14 @@ function CompletionPreview.on_accept_suggestion()
 
     vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Space><Left><Del>", true, false, true), "n", false)
     vim.lsp.util.apply_text_edits({{ range = range, newText = completion_text }}, vim.api.nvim_get_current_buf(), "utf-16")
-    local adjust_cursor = "<End>"
-    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(adjust_cursor, true, false, true), "n", false)
+
+    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(
+      string.rep("<Down>", #u.split(completion_text, "\n")) -- Go down as much as the completion last line is
+      ..
+      string.rep("<Right>", #u.get_last_line(completion_text)), -- Go to the right as much as the completion last line is
+      true, false, true), "n", false)
   else
-    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Tab>", true, false , true), "n", true) 
+    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Tab>", true, false , true), "n", true)
   end
 end
 
