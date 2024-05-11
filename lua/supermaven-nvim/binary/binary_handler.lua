@@ -281,6 +281,9 @@ function BinaryLifecycle:poll_once()
   end
   self.wants_polling = true
   local buffer = self.buffer
+  if not vim.api.nvim_buf_is_valid(buffer) then
+        return
+  end
   local cursor = self.cursor
   local text_split = u.get_text_before_after_cursor(cursor)
   local line_before_cursor = text_split.text_before_cursor

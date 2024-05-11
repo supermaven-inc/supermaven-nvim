@@ -9,7 +9,9 @@ vim.api.nvim_create_autocmd({"TextChanged", "TextChangedI"}, {
     if not file_name or not buffer then
       return
     end
-    binary:on_update(buffer, file_name, "text_changed")
+    if vim.api.nvim_buf_is_valid(buffer) then
+      binary:on_update(buffer, file_name, "text_changed")
+    end
   end
 })
 
@@ -20,7 +22,10 @@ vim.api.nvim_create_autocmd({"CursorMoved", "CursorMovedI"}, {
     if not file_name or not buffer then
       return
     end
-    binary:on_update(buffer, file_name, "cursor")
+
+    if vim.api.nvim_buf_is_valid(buffer) then
+      binary:on_update(buffer, file_name, "cursor")
+    end
   end
 })
 
