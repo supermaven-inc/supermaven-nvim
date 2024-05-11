@@ -112,7 +112,7 @@ end
 function CompletionPreview.on_accept_suggestion()
   local accept_completion = CompletionPreview:accept_completion_text()
   if accept_completion ~= nil and accept_completion.is_active then
-    local completion_text = accept_completion.completion_text
+    local completion_text = accept_completion.completion_text:gsub("\n\n*$", "") -- remove extra newlines
     local prior_delete = accept_completion.prior_delete
     local cursor = vim.api.nvim_win_get_cursor(0)
     local range = {
@@ -130,7 +130,7 @@ function CompletionPreview.on_accept_suggestion()
     vim.lsp.util.apply_text_edits({{ range = range, newText = completion_text }}, vim.api.nvim_get_current_buf(), "utf-16")
 
     vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(
-      string.rep("<Down>", #u.split(completion_text, "\n")) -- Go down as much as the completion last line is
+      string.rep("<Down>", u.line_count(completion_text)) -- Go down as much as the completion last line is
       ..
       string.rep("<Right>", #u.get_last_line(completion_text)), -- Go to the right as much as the completion last line is
       true, false, true), "n", false)

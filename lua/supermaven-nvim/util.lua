@@ -173,7 +173,7 @@ function M.line_count(str)
 end
 
 function M.get_last_line(str)
-  local last_line = ""
+  local last_line = str
   for i = #str, 1, -1 do
     local char = str:sub(i, i)
     if char == "\n" then
