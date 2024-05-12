@@ -18,7 +18,7 @@ function BinaryFetcher:platform()
 end
 
 function BinaryFetcher:get_arch()
-  if self.os_uname.machine == "arm64" then
+  if self.os_uname.machine == "arm64" or self.os_uname.machine == "aarch64" then
     return "aarch64"
   elseif self.os_uname.machine == "x86_64" then
     return "x86_64"
