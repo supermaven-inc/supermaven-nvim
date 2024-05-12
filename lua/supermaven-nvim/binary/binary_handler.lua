@@ -18,7 +18,7 @@ local BinaryLifecycle = {
   ignore_filetypes = {},
 }
 
-local timer = vim.uv.new_timer()
+local timer = loop.new_timer()
 timer:start(0, 25, vim.schedule_wrap(function()
   if BinaryLifecycle.wants_polling then
     BinaryLifecycle:poll_once()
