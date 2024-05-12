@@ -93,12 +93,20 @@ function M.get_home_directory()
 end
 
 function M.get_cursor_prefix(bufnr, cursor)
-  local prefix = vim.api.nvim_buf_get_text(bufnr, 0, 0, cursor[1] - 1, cursor[2], {})
-  local text = table.concat(prefix, "\n")
-  return text
+    if not vim.api.nvim_buf_is_valid(bufnr) then
+        return ""
+    end
+
+    local prefix = vim.api.nvim_buf_get_text(bufnr, 0, 0, cursor[1] - 1, cursor[2], {})
+    local text = table.concat(prefix, "\n")
+    return text
 end
 
 function M.get_cursor_suffix(bufnr, cursor)
+  if not vim.api.nvim_buf_is_valid(bufnr) then
+        return ""
+  end
+
   local suffix = vim.api.nvim_buf_get_text(bufnr, cursor[1], cursor[2], -1, -1, {})
   local text = table.concat(suffix, "\n")
   return text
