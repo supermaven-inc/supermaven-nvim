@@ -129,9 +129,9 @@ function CompletionPreview.on_accept_suggestion()
     vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Space><Left><Del>", true, false, true), "n", false)
     vim.lsp.util.apply_text_edits({{ range = range, newText = completion_text }}, vim.api.nvim_get_current_buf(), "utf-16")
 
-    -- We need to update the cursor position based on the number of lines in the completion text
-    local lines = vim.split(completion_text, "\n", { plain = true })
-    local new_cursor_pos = {cursor[1] + #lines - 1, #lines[#lines] + 1}
+    local lines = u.line_count(completion_text)
+    local last_line = u.get_last_line(completion_text)
+    local new_cursor_pos = {cursor[1] + lines , cursor[2] + #last_line + 1}
     vim.api.nvim_win_set_cursor(0, new_cursor_pos)
   else
     vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Tab>", true, false , true), "n", true)
