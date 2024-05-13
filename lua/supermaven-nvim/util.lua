@@ -161,8 +161,7 @@ function M.ends_with(str, suffix)
 end
 
 function M.get_utf8_length(str)
-  local byte_array = { str.byte(str, 1, -1) }
-  return #byte_array
+  return #str
 end
 
 function M.line_count(str)
@@ -174,7 +173,7 @@ function M.line_count(str)
 end
 
 function M.get_last_line(str)
-  local last_line = ""
+  local last_line = str
   for i = #str, 1, -1 do
     local char = str:sub(i, i)
     if char == "\n" then
