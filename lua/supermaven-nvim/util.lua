@@ -161,7 +161,7 @@ function M.ends_with(str, suffix)
 end
 
 function M.get_utf8_length(str)
-    return vim.fn.strlen(str)
+  return #str
 end
 
 function M.line_count(str)
