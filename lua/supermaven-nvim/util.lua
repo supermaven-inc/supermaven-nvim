@@ -161,15 +161,7 @@ function M.ends_with(str, suffix)
 end
 
 function M.get_utf8_length(str)
-    local ALLOWED_LENGTH = 8000 -- maximum length .byte function may take in LuaJIT (used by Neovim)
-    local splitted_str = {}
-
-    for i = 1, #str, ALLOWED_LENGTH do
-        table.insert(splitted_str, string.sub(str, i, i + ALLOWED_LENGTH - 1))
-        i = i + ALLOWED_LENGTH
-    end
-
-    return #vim.iter(splitted_str):map(function(s) return { s.byte(s, 1, -1) } end):flatten():totable()
+    return vim.fn.strlen(str)
 end
 
 function M.line_count(str)
