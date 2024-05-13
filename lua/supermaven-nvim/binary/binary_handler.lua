@@ -71,7 +71,7 @@ function BinaryLifecycle:on_update(buffer, file_name, event_type)
   local cursor = api.nvim_win_get_cursor(0)
   if cursor ~= nil then
     local prefix = self:save_state_id(buffer, cursor, file_name)
-    local offset = u.get_utf8_length(prefix)
+    local offset = #prefix
     updates[#updates + 1] = {
       kind = "cursor_update",
       path = file_name,
