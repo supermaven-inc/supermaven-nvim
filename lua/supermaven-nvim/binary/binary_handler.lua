@@ -71,6 +71,9 @@ function BinaryLifecycle:on_update(buffer, file_name, event_type)
   local cursor = api.nvim_win_get_cursor(0)
   if cursor ~= nil then
     local prefix = self:save_state_id(buffer, cursor, file_name)
+    if prefix == nil then
+      return
+    end
     local offset = #prefix
     updates[#updates + 1] = {
       kind = "cursor_update",
@@ -243,7 +246,10 @@ function BinaryLifecycle:save_state_id(buffer, cursor, file_name)
   self.current_state_id = self.current_state_id + 1
   self:purge_old_states()
 
-  local prefix = u.get_cursor_prefix(buffer, cursor)
+  local status, prefix = pcall(u.get_cursor_prefix, buffer, cursor)
+  if not status then
+    return nil
+  end
   
   self.state_map[self.current_state_id] = {
     prefix = prefix,
@@ -289,7 +295,10 @@ function BinaryLifecycle:poll_once()
   local text_split = u.get_text_before_after_cursor(cursor)
   local line_before_cursor = text_split.text_before_cursor
   local line_after_cursor = text_split.text_after_cursor
-  local prefix = u.get_cursor_prefix(buffer, cursor)
+  local status, prefix = pcall(u.get_cursor_prefix, buffer, cursor)
+  if not status then
+    return
+  end
   if line_before_cursor == nil or line_after_cursor == nil then
     return
   end
