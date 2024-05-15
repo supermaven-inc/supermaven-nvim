@@ -21,7 +21,9 @@ require("lazy").setup({
 
 ### Optional configuration
 
-By default, supermaven-nvim will use the `<Tab>` and `<C-]>` keymaps to accept and clear suggestions. You can change these keymaps by passing a `keymaps` table to the .setup({}) function. 
+By default, supermaven-nvim will use the `<Tab>` and `<C-]>` keymaps to accept and clear suggestions. You can change these keymaps by passing a `keymaps` table to the .setup({}) function.
+
+`accept_word` can optionally be passed into the `keymaps` table which allows partially accepting a completion, up to the end of the next word.
 
 The `ignore_filetypes` table is used to ignore filetypes when using supermaven-nvim. If a filetype is present as a key, and its value is `true`, supermaven-nvim will not display suggestions for that filetype.
 
@@ -32,6 +34,7 @@ require("supermaven-nvim").setup({
   keymaps = {
     accept_suggestion = "<Tab>",
     clear_suggestion = "<C-]>",
+    accept_word = "<C->",
   },
   ignore_filetypes = { cpp = true },
   color = {
