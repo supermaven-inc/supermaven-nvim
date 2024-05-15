@@ -16,6 +16,7 @@ local BinaryLifecycle = {
   cursor = nil,
   max_state_id_retention = 50,
   ignore_filetypes = {},
+  service_message_displayed = false,
 }
 
 local timer = loop.new_timer()
@@ -189,7 +190,10 @@ function BinaryLifecycle:process_message(message)
   elseif message.kind == "active_repo" then
     -- unused, no status bar is displayed
   elseif message.kind == "service_tier" then
-    print("Supermaven " .. message.display .. " is running.")
+    if not self.service_message_displayed then
+      print("Supermaven " .. message.display .. " is running.")
+      self.service_message_displayed = true
+    end
     vim.schedule(
       function()
         self:close_popup()
@@ -439,6 +443,7 @@ function BinaryLifecycle:use_free_version()
 end
 
 function BinaryLifecycle:logout()
+  self.service_message_displayed = false
   local message = vim.json.encode({ kind = "logout" }) .. "\n"
   loop.write(self.stdin, message) -- fails silently
 end
