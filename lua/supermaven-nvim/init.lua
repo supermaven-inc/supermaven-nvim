@@ -13,6 +13,11 @@ M.setup = function(args)
     vim.keymap.set('i', accept_suggestion_key, completion_preview.on_accept_suggestion, { noremap = true, silent = true })
   end
 
+  if config_settings.keymaps.accept_word ~= nil then
+    local accept_word_key = config_settings.keymaps.accept_word
+    vim.keymap.set('i', accept_word_key, completion_preview.on_accept_suggestion_word, { noremap = true, silent = true })
+  end
+
   if config_settings.keymaps.clear_suggestion ~= nil then
     local clear_suggestion_key = config_settings.keymaps.clear_suggestion
     vim.keymap.set('i', clear_suggestion_key, completion_preview.on_dispose_inlay, { noremap = true, silent = true })

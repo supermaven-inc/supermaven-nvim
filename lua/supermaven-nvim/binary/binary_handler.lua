@@ -16,6 +16,7 @@ local BinaryLifecycle = {
   cursor = nil,
   max_state_id_retention = 50,
   ignore_filetypes = {},
+  service_message_displayed = false,
 }
 
 local timer = loop.new_timer()
@@ -71,7 +72,10 @@ function BinaryLifecycle:on_update(buffer, file_name, event_type)
   local cursor = api.nvim_win_get_cursor(0)
   if cursor ~= nil then
     local prefix = self:save_state_id(buffer, cursor, file_name)
-    local offset = u.get_utf8_length(prefix)
+    if prefix == nil then
+      return
+    end
+    local offset = #prefix
     updates[#updates + 1] = {
       kind = "cursor_update",
       path = file_name,
@@ -186,7 +190,10 @@ function BinaryLifecycle:process_message(message)
   elseif message.kind == "active_repo" then
     -- unused, no status bar is displayed
   elseif message.kind == "service_tier" then
-    print("Supermaven " .. message.display .. " is running.")
+    if not self.service_message_displayed then
+      print("Supermaven " .. message.display .. " is running.")
+      self.service_message_displayed = true
+    end
     vim.schedule(
       function()
         self:close_popup()
@@ -243,7 +250,10 @@ function BinaryLifecycle:save_state_id(buffer, cursor, file_name)
   self.current_state_id = self.current_state_id + 1
   self:purge_old_states()
 
-  local prefix = u.get_cursor_prefix(buffer, cursor)
+  local status, prefix = pcall(u.get_cursor_prefix, buffer, cursor)
+  if not status then
+    return nil
+  end
   
   self.state_map[self.current_state_id] = {
     prefix = prefix,
@@ -282,10 +292,17 @@ function BinaryLifecycle:poll_once()
   self.wants_polling = true
   local buffer = self.buffer
   local cursor = self.cursor
+  if not vim.api.nvim_buf_is_valid(buffer) then
+    self.wants_polling = false
+    return
+  end
   local text_split = u.get_text_before_after_cursor(cursor)
   local line_before_cursor = text_split.text_before_cursor
   local line_after_cursor = text_split.text_after_cursor
-  local prefix = u.get_cursor_prefix(buffer, cursor)
+  local status, prefix = pcall(u.get_cursor_prefix, buffer, cursor)
+  if not status then
+    return
+  end
   if line_before_cursor == nil or line_after_cursor == nil then
     return
   end
@@ -426,6 +443,7 @@ function BinaryLifecycle:use_free_version()
 end
 
 function BinaryLifecycle:logout()
+  self.service_message_displayed = false
   local message = vim.json.encode({ kind = "logout" }) .. "\n"
   loop.write(self.stdin, message) -- fails silently
 end

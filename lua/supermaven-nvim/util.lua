@@ -160,10 +160,6 @@ function M.ends_with(str, suffix)
   return string.sub(str, -#suffix) == suffix
 end
 
-function M.get_utf8_length(str)
-  return #str
-end
-
 function M.line_count(str)
   local count = 0
   for _ in str:gmatch("\n") do
@@ -183,6 +179,14 @@ function M.get_last_line(str)
   end
 
   return last_line
+end
+
+function M.to_next_word(str)
+  local match = str:match("^.-[%a%d_]+")
+  if match ~= nil then
+    return match
+  end
+  return str
 end
 
 return M
