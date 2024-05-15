@@ -17,6 +17,8 @@ local BinaryLifecycle = {
   max_state_id_retention = 50,
   ignore_filetypes = {},
   service_message_displayed = false,
+  popup_should_open = false,
+  popups_opened = 0,
 }
 
 local timer = loop.new_timer()
@@ -35,7 +37,7 @@ function BinaryLifecycle:start_binary(ignore_filetypes)
   self.last_path = nil
   self.last_context = nil
   self.wants_polling = false
-  self.handle = loop.spawn(binary_path, 
+  self.handle = loop.spawn(binary_path,
     {
       args = {
         "stdio"
@@ -118,9 +120,9 @@ function BinaryLifecycle:same_context(context)
     return false
   end
   return context.cursor[1] == self.last_context.cursor[1]
-  and context.cursor[2] == self.last_context.cursor[2]
-  and context.file_name == self.last_context.file_name
-  and context.document_text == self.last_context.document_text
+    and context.cursor[2] == self.last_context.cursor[2]
+    and context.file_name == self.last_context.file_name
+    and context.document_text == self.last_context.document_text
 end
 
 function BinaryLifecycle:read_loop()
@@ -154,7 +156,7 @@ function BinaryLifecycle:process_line(line)
     line = string.sub(line, 12)
     local message = vim.json.decode(line)
     self:process_message(message)
-  else 
+  else
     print("Unknown message: " .. line)
   end
 end
@@ -169,6 +171,7 @@ function BinaryLifecycle:process_message(message)
     vim.schedule(
       function ()
         if self.activate_url ~= nil then
+          self.popup_should_open = true
           self:open_popup(self.activate_url, true)
         end
       end
@@ -176,6 +179,7 @@ function BinaryLifecycle:process_message(message)
   elseif message.kind == "activation_success" then
     self.activate_url = nil
     print("Supermaven was activated successfully.")
+    self.popups_opened = 0
     vim.schedule(
       function()
         self:close_popup()
@@ -193,6 +197,8 @@ function BinaryLifecycle:process_message(message)
     if not self.service_message_displayed then
       print("Supermaven " .. message.display .. " is running.")
       self.service_message_displayed = true
+      self.popup_should_open = false
+      self.popups_opened = self.popups_opened + 1
     end
     vim.schedule(
       function()
@@ -254,7 +260,7 @@ function BinaryLifecycle:save_state_id(buffer, cursor, file_name)
   if not status then
     return nil
   end
-  
+
   self.state_map[self.current_state_id] = {
     prefix = prefix,
     completion = {},
@@ -380,7 +386,7 @@ function BinaryLifecycle:strip_prefix(completion, original_prefix)
   for _, response_item in ipairs(completion) do
     if response_item.kind == "text" then
       local text = response_item.text
-      if not self:shares_common_prefix(text, prefix) then 
+      if not self:shares_common_prefix(text, prefix) then
         return nil
       end
       local trim_length = math.min(#text, #prefix)
@@ -438,12 +444,27 @@ vim.api.nvim_create_user_command("SupermavenUsePro", function()
 end, {})
 
 function BinaryLifecycle:use_free_version()
+  if self.popups_opened == 0 then
+    vim.notify("Loading Supermaven ...", vim.log.levels.WARN, { title = "Supermaven" })
+    self.popup_should_open = true
+    self.popups_opened = self.popups_opened + 1
+  else
+    vim.notify("Supermaven is already running", vim.log.levels.WARN, { title = "Supermaven" })
+  end
   local message = vim.json.encode({ kind = "use_free_version" }) .. "\n"
   loop.write(self.stdin, message) -- fails silently
 end
 
 function BinaryLifecycle:logout()
+  if self.popups_opened == 0 then
+    vim.notify("Already logged out from Supermaven", vim.log.levels.WARN, { title = "Supermaven" })
+    return
+  else
+    vim.notify("Logging out from Supermaven ...", vim.log.levels.WARN, { title = "Supermaven" })
+  end
   self.service_message_displayed = false
+  self.popup_should_open = false
+  self.popups_opened = 0
   local message = vim.json.encode({ kind = "logout" }) .. "\n"
   loop.write(self.stdin, message) -- fails silently
 end
@@ -451,21 +472,33 @@ end
 function BinaryLifecycle:use_pro()
   if self.activate_url ~= nil then
     print("Visit " .. self.activate_url .. " to set up Supermaven Pro")
+    self.popup_should_open = true
+    self.popups_opened = 0
     self:open_popup(self.activate_url)
   else
     print("Could not find an activation URL.")
+    self.popups_opened = self.popups_opened + 1
   end
 end
 
-function BinaryLifecycle:close_popup()
+function BinaryLifecycle:close_popup(close)
   if self.win ~= nil and vim.api.nvim_win_is_valid(self.win) then
     vim.api.nvim_win_close(self.win, true)
   end
   self.win = nil
+  if close and self.popups_opened > 0 then
+    self.popups_opened = self.popups_opened + 1
+    self.service_message_displayed = false
+    self.popup_should_open = false
+    vim.notify("Supermaven is now disabled", vim.log.levels.WARN, { title = "Supermaven" })
+  end
 end
 
 function BinaryLifecycle:open_popup(message, include_free)
-  if self.win ~= nil and vim.api.nvim_win_is_valid(self.win) then
+  if self.popups_opened > 0 then
+    return
+  end
+  if (self.win ~= nil and vim.api.nvim_win_is_valid(self.win)) or not self.popup_should_open then
     return
   end
   local buf = vim.api.nvim_create_buf(false, true)
@@ -495,12 +528,20 @@ function BinaryLifecycle:open_popup(message, include_free)
   }
 
   local win = vim.api.nvim_open_win(buf, true, opts)
+  self.popups_opened = self.popups_opened + 1
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, { intro_message, "", message .. " " })
   vim.api.nvim_win_set_option(win, "winhl", "Normal:Normal")
   vim.api.nvim_win_set_option(win, "wrap", true)
+  vim.api.nvim_buf_set_option(buf, "modifiable", false)
+
+  vim.keymap.set("n", "q", function()
+    self:close_popup(true)
+  end, { buffer = buf, noremap = true, silent = true })
+  vim.keymap.set("n", "<esc>", function()
+    self:close_popup(true)
+  end, { buffer = buf, noremap = true, silent = true })
 
   self.win = win
 end
-
 
 return BinaryLifecycle
