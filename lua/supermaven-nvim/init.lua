@@ -7,7 +7,7 @@ local supermave_config = require("supermaven-nvim.config")
 ---@class SuperMaven
 M = {}
 
----@class SuperMavenConfig
+---@class SuperMaven
 ---@field config SuperMavenConfig
 M.config = {}
 
