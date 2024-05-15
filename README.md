@@ -13,11 +13,22 @@ require("lazy").setup({
     {
       "supermaven-inc/supermaven-nvim",
       config = function()
-        require("supermaven-nvim").setup({})
+        require("supermaven-nvim").setup()
       end,
+    },
+    { -- or this way
+      "supermaven-inc/supermaven-nvim",
+      config = true,
     },
 }, {})
 ```
+
+> [!NOTE]
+>
+> This is to use the default configuration of `supermaven-nvim`.
+>
+> If you want to customize the configuration, see the [Optional configuration](#optional-configuration)
+> section below.
 
 ### Optional configuration
 
