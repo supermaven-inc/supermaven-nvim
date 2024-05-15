@@ -181,4 +181,12 @@ function M.get_last_line(str)
   return last_line
 end
 
+function M.to_next_word(str)
+  local match = str:match("^.-[%a%d_]+")
+  if match ~= nil then
+    return match
+  end
+  return str
+end
+
 return M

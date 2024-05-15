@@ -78,7 +78,7 @@ function CompletionPreview:dispose_inlay()
   self.inlay_instance = nil
 end
 
-function CompletionPreview:accept_completion_text()
+function CompletionPreview:accept_completion_text(is_partial)
   local current_instance = self.inlay_instance
   if current_instance == nil then
     return nil
@@ -88,6 +88,9 @@ function CompletionPreview:accept_completion_text()
   CompletionPreview:dispose_inlay()
 
   if completion_text ~= nil then
+    if is_partial then
+      completion_text = u.to_next_word(completion_text)
+    end
     return {completion_text = completion_text, prior_delete = prior_delete, is_active = current_instance.is_active}
   end
 end
@@ -109,8 +112,8 @@ function CompletionPreview:should_completion_be_active(completion_text, line_bef
   return false
 end
 
-function CompletionPreview.on_accept_suggestion()
-  local accept_completion = CompletionPreview:accept_completion_text()
+function CompletionPreview.on_accept_suggestion(is_partial)
+  local accept_completion = CompletionPreview:accept_completion_text(is_partial)
   if accept_completion ~= nil and accept_completion.is_active then
     local completion_text = accept_completion.completion_text
     local prior_delete = accept_completion.prior_delete
@@ -136,6 +139,10 @@ function CompletionPreview.on_accept_suggestion()
   else
     vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Tab>", true, false , true), "n", true)
   end
+end
+
+function CompletionPreview.on_accept_suggestion_word()
+  CompletionPreview.on_accept_suggestion(true)
 end
 
 function CompletionPreview.on_dispose_inlay()
