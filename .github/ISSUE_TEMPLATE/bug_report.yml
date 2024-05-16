@@ -1,0 +1,130 @@
+name: Bug Report
+description: Report a problem with supermaven-nvim.
+title: "[Bug]: "
+labels:
+  - bug
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # Before reporting
+
+        - Confirm that the problem is reproducible.
+
+  - type: checkboxes
+    id: pre-requisites
+    attributes:
+      label: Pre-requisites
+      description: |
+          Make sure to check to see if you are following this requisites.
+      options:
+        - label: The issue is reproducible
+          required: true
+        - label: The aren't other issues similar to this problem.
+          required: true
+        - label: The aren't PRs tackling this problem.
+          required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ## Issue report
+
+  - type: textarea
+    id: nvim-version
+    attributes:
+      label: NeoVim version
+      description: Paste here your NeoVim version, `nvim --version`.
+      placeholder: |
+        NVIM v0.9.5
+        Build type: RelWithDebInfo
+        LuaJIT 2.1.1692716794
+    validations:
+      required: true
+
+  - type: dropdown
+    id: operative-system
+    attributes:
+      label: Operative system
+      description: OS in which the issue occurs
+      multiple: true
+      options:
+        - Windows
+        - MacOS
+        - Linux
+        - Android
+        - All systems
+    validations:
+      required: true
+
+  - type: textarea
+    id: os-version
+    attributes:
+      label: OS version
+      description: OS version in which the issue occurs
+      placeholder: |
+        MacOS 14.4.1
+        Windows 11
+        Ubuntu 22.04
+        ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: issue-behaviour
+    attributes:
+      label: Behaviour
+      description: |
+        Describe the current behaviour. You may include logs, images, videos ... if needed.
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro-steps
+    attributes:
+      label: Steps to reproduce
+      description: List the steps to reproduce the behaviour mentioned above.
+      placeholder: |
+        1. `nvim --clean -u minimal.lua`
+        2. Go to ...
+        3. Use ...
+        ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: minimal-config
+    attributes:
+      label: Minimal config
+      description: Minimal configuration to reproduce this behaviour.
+      render: lua
+      value: |
+        vim.cmd([[set runtimepath=$VIMRUNTIME]])
+        vim.cmd([[set packpath=/tmp/nvim/]])
+
+        local lazypath = "/tmp/nvim/lazy/lazy.nvim"
+        if not vim.loop.fs_stat(lazypath) then
+          vim.fn.system({
+            "git",
+            "clone",
+            "--filter=blob:none",
+            "https://github.com/folke/lazy.nvim.git",
+            "--branch=stable", -- latest stable release
+            lazypath,
+          })
+        end
+        vim.opt.rtp:prepend(lazypath)
+
+        require("lazy").setup({
+          {
+            "supermaven-inc/supermaven-nvim",
+            config = function()
+              require("supermaven-nvim").setup({})
+            end,
+            lazy = false,
+            enabled = true,
+          },
+        })
+    validations:
+      required: true
