@@ -4,14 +4,14 @@ local u = require("supermaven-nvim.util")
 local listener = require("supermaven-nvim.document_listener")
 local supermave_config = require("supermaven-nvim.config")
 
----@class SuperMaven
+---@class Supermaven
 M = {}
 
----@class SuperMaven
----@field config SuperMavenConfig
+---@class Supermaven
+---@field config SupermavenConfig
 M.config = {}
 
----@class SuperMaven
+---@class Supermaven
 ---@field setup function
 --- Sets up the plugin with the given a custom configuration (args)
 --- or the default configuration.
@@ -33,8 +33,8 @@ M.config = {}
 ---
 ---[link to the configuration section](https://github.com/supermaven-nvim/supermaven-nvim/blob/main/lua/supermaven-nvim/config.lua)
 ---
----@see SuperMavenConfig
----@param args SuperMavenConfig
+---@see SupermavenConfig
+---@param args SupermavenConfig
 M.setup = function(args)
   M.config = supermave_config.setup_config(args)
   if M.config.keymaps.accept_suggestion ~= nil then
