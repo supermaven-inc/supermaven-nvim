@@ -196,9 +196,7 @@ function BinaryLifecycle:process_message(message)
   elseif message.kind == "service_tier" then
     if not self.service_message_displayed then
       print("Supermaven " .. message.display .. " is running.")
-      self.service_message_displayed = true
-      self.popup_should_open = false
-      self.popups_opened = self.popups_opened + 1
+      self:popup_tracker_state("close")
     end
     vim.schedule(
       function()
@@ -444,12 +442,10 @@ vim.api.nvim_create_user_command("SupermavenUsePro", function()
 end, {})
 
 function BinaryLifecycle:use_free_version()
-  if self.popups_opened == 0 then
+  if not self.service_message_displayed then
     vim.notify("Loading Supermaven ...", vim.log.levels.WARN, { title = "Supermaven" })
     self.popup_should_open = true
     self.popups_opened = self.popups_opened + 1
-  else
-    vim.notify("Supermaven is already running", vim.log.levels.WARN, { title = "Supermaven" })
   end
   local message = vim.json.encode({ kind = "use_free_version" }) .. "\n"
   loop.write(self.stdin, message) -- fails silently
@@ -481,15 +477,26 @@ function BinaryLifecycle:use_pro()
   end
 end
 
+--- Change the state of the popup trackers
+--- @param change "open" | "close"
+function BinaryLifecycle:popup_tracker_state(change)
+  if change == "open" then
+    self.popup_should_open = true
+    self.popups_opened = 0
+  elseif change == "close" then
+    self.popup_should_open = false
+    self.popups_opened = self.popups_opened + 1
+    self.service_message_displayed = false
+  end
+end
+
 function BinaryLifecycle:close_popup(close)
   if self.win ~= nil and vim.api.nvim_win_is_valid(self.win) then
     vim.api.nvim_win_close(self.win, true)
   end
   self.win = nil
   if close and self.popups_opened > 0 then
-    self.popups_opened = self.popups_opened + 1
-    self.service_message_displayed = false
-    self.popup_should_open = false
+    self:popup_tracker_state("close")
     vim.notify("Supermaven is now disabled", vim.log.levels.WARN, { title = "Supermaven" })
   end
 end
@@ -529,6 +536,7 @@ function BinaryLifecycle:open_popup(message, include_free)
 
   local win = vim.api.nvim_open_win(buf, true, opts)
   self.popups_opened = self.popups_opened + 1
+  vim.notify("Logged out from Supermaven", vim.log.levels.WARN, { title = "Supermaven" })
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, { intro_message, "", message .. " " })
   vim.api.nvim_win_set_option(win, "winhl", "Normal:Normal")
   vim.api.nvim_win_set_option(win, "wrap", true)
