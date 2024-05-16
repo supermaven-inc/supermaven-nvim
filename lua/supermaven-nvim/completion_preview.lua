@@ -2,20 +2,26 @@ local u = require("supermaven-nvim.util")
 
 local CompletionPreview = {
   inlay_instance = nil,
-  ns_id = vim.api.nvim_create_namespace('supermaven'),
+  ns_id = vim.api.nvim_create_namespace("supermaven"),
   suggestion_group = "Comment",
 }
 
 CompletionPreview.__index = CompletionPreview
 
-function CompletionPreview:render_with_inlay(buffer, prior_delete, completion_text, line_after_cursor, line_before_cursor)
+function CompletionPreview:render_with_inlay(
+  buffer,
+  prior_delete,
+  completion_text,
+  line_after_cursor,
+  line_before_cursor
+)
   self:dispose_inlay()
 
   if not buffer then
     return
   end
 
-  if vim.api.nvim_get_mode().mode ~= 'i' then
+  if vim.api.nvim_get_mode().mode ~= "i" then
     return
   end
 
@@ -91,10 +97,9 @@ function CompletionPreview:accept_completion_text(is_partial)
     if is_partial then
       completion_text = u.to_next_word(completion_text)
     end
-    return {completion_text = completion_text, prior_delete = prior_delete, is_active = current_instance.is_active}
+    return { completion_text = completion_text, prior_delete = prior_delete, is_active = current_instance.is_active }
   end
 end
-
 
 function CompletionPreview:should_completion_be_active(completion_text, line_before_cursor, first_line)
   if (completion_text == "") or (not completion_text:sub(1, 1):match("%s")) then
@@ -126,18 +131,22 @@ function CompletionPreview.on_accept_suggestion(is_partial)
       ["end"] = {
         line = cursor[1] - 1,
         character = vim.fn.col("$"),
-      }
+      },
     }
 
     vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Space><Left><Del>", true, false, true), "n", false)
-    vim.lsp.util.apply_text_edits({{ range = range, newText = completion_text }}, vim.api.nvim_get_current_buf(), "utf-16")
+    vim.lsp.util.apply_text_edits(
+      { { range = range, newText = completion_text } },
+      vim.api.nvim_get_current_buf(),
+      "utf-16"
+    )
 
     local lines = u.line_count(completion_text)
     local last_line = u.get_last_line(completion_text)
-    local new_cursor_pos = {cursor[1] + lines , cursor[2] + #last_line + 1}
+    local new_cursor_pos = { cursor[1] + lines, cursor[2] + #last_line + 1 }
     vim.api.nvim_win_set_cursor(0, new_cursor_pos)
   else
-    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Tab>", true, false , true), "n", true)
+    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Tab>", true, false, true), "n", true)
   end
 end
 

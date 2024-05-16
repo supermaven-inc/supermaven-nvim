@@ -1,5 +1,5 @@
 local u = require("supermaven-nvim.util")
-M = {}
+local M = {}
 
 local function find_first_non_empty_newline(s)
   local seen_non_whitespace = false
@@ -79,7 +79,7 @@ local function can_delete(params)
   return true
 end
 
-local function finish_completion(output, deletion, dedent, params)
+local function finish_completion(output, _deletion, dedent, params)
   if not can_delete(params) then
     return nil
   end
@@ -110,7 +110,7 @@ local function finish_completion(output, deletion, dedent, params)
         is_incomplete = false,
       }
     end
-    
+
     if not is_all_whitespace_and_closing_paren(params.line_after_cursor) then
       return nil
     end
@@ -128,7 +128,7 @@ local function finish_completion(output, deletion, dedent, params)
       }
     end
   end
-  
+
   return nil
 end
 
@@ -165,7 +165,7 @@ function M.derive_completion(completion, completion_params)
   if index ~= nil then
     output = output:sub(1, index)
   end
-  
+
   return finish_completion(output, deletion, dedent, completion_params)
 end
 

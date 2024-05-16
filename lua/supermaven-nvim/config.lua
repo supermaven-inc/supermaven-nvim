@@ -7,7 +7,7 @@ local default_config = {
   ignore_filetypes = {},
 }
 
-M = {}
+local M = {}
 
 M.setup_config = function(args)
   local config = vim.tbl_deep_extend("force", default_config, args)

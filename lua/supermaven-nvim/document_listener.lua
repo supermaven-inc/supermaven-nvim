@@ -1,8 +1,8 @@
-local u = require("supermaven-nvim.util")
+local _u = require("supermaven-nvim.util")
 local binary = require("supermaven-nvim.binary.binary_handler")
 local preview = require("supermaven-nvim.completion_preview")
 
-vim.api.nvim_create_autocmd({"TextChanged", "TextChangedI"}, {
+vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
   callback = function(event)
     local file_name = event["file"]
     local buffer = event["buf"]
@@ -10,10 +10,10 @@ vim.api.nvim_create_autocmd({"TextChanged", "TextChangedI"}, {
       return
     end
     binary:on_update(buffer, file_name, "text_changed")
-  end
+  end,
 })
 
-vim.api.nvim_create_autocmd({"CursorMoved", "CursorMovedI"}, {
+vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
   callback = function(event)
     local file_name = event["file"]
     local buffer = event["buf"]
@@ -21,11 +21,11 @@ vim.api.nvim_create_autocmd({"CursorMoved", "CursorMovedI"}, {
       return
     end
     binary:on_update(buffer, file_name, "cursor")
-  end
+  end,
 })
 
-vim.api.nvim_create_autocmd({"InsertLeave"}, {
-  callback = function(event)
+vim.api.nvim_create_autocmd({ "InsertLeave" }, {
+  callback = function(_event)
     preview:dispose_inlay()
-  end
+  end,
 })

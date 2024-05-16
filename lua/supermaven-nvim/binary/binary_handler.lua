@@ -1,10 +1,9 @@
 local loop = vim.loop
 local api = vim.api
-local u = require("supermaven-nvim.util")
-local textual = require("supermaven-nvim.textual")
-local preview = require("supermaven-nvim.completion_preview")
 local binary_fetcher = require("supermaven-nvim.binary.binary_fetcher")
-
+local preview = require("supermaven-nvim.completion_preview")
+local textual = require("supermaven-nvim.textual")
+local u = require("supermaven-nvim.util")
 
 local binary_path = binary_fetcher:fetch_binary()
 
@@ -20,13 +19,20 @@ local BinaryLifecycle = {
 }
 
 local timer = loop.new_timer()
-timer:start(0, 25, vim.schedule_wrap(function()
-  if BinaryLifecycle.wants_polling then
-    BinaryLifecycle:poll_once()
-  end
-end))
+timer:start(
+  0,
+  25,
+  vim.schedule_wrap(function()
+    if BinaryLifecycle.wants_polling then
+      BinaryLifecycle:poll_once()
+    end
+  end)
+)
 
 function BinaryLifecycle:start_binary(ignore_filetypes)
+  if binary_path == nil then
+    return
+  end
   self.ignore_filetypes = ignore_filetypes
   self.stdin = loop.new_pipe(false)
   self.stdout = loop.new_pipe(false)
@@ -35,19 +41,16 @@ function BinaryLifecycle:start_binary(ignore_filetypes)
   self.last_path = nil
   self.last_context = nil
   self.wants_polling = false
-  self.handle = loop.spawn(binary_path, 
-    {
-      args = {
-        "stdio"
-      },
-      stdio = {self.stdin, self.stdout, self.stderr},
+  self.handle = loop.spawn(binary_path, {
+    args = {
+      "stdio",
     },
-    function(code, signal)
-      print("sm-agent exited with code " .. code)
-      self.handle:close()
-      self.handle = nil
-    end
-  )
+    stdio = { self.stdin, self.stdout, self.stderr },
+  }, function(code, _signal)
+    print("sm-agent exited with code " .. code)
+    self.handle:close()
+    self.handle = nil
+  end)
   if not self.handle then
     print("Error starting binary")
   end
@@ -60,7 +63,7 @@ function BinaryLifecycle:greeting_message()
   loop.write(self.stdin, message) -- fails silently
 end
 
-function BinaryLifecycle:on_update(buffer, file_name, event_type)
+function BinaryLifecycle:on_update(buffer, file_name, _event_type)
   local buffer_text = u.get_text(buffer)
   local updates = {
     {
@@ -118,9 +121,9 @@ function BinaryLifecycle:same_context(context)
     return false
   end
   return context.cursor[1] == self.last_context.cursor[1]
-  and context.cursor[2] == self.last_context.cursor[2]
-  and context.file_name == self.last_context.file_name
-  and context.document_text == self.last_context.document_text
+    and context.cursor[2] == self.last_context.cursor[2]
+    and context.file_name == self.last_context.file_name
+    and context.document_text == self.last_context.document_text
 end
 
 function BinaryLifecycle:read_loop()
@@ -154,7 +157,7 @@ function BinaryLifecycle:process_line(line)
     line = string.sub(line, 12)
     local message = vim.json.decode(line)
     self:process_message(message)
-  else 
+  else
     print("Unknown message: " .. line)
   end
 end
@@ -166,21 +169,17 @@ function BinaryLifecycle:process_message(message)
     self:update_metadata(message)
   elseif message.kind == "activation_request" then
     self.activate_url = message.activateUrl
-    vim.schedule(
-      function ()
-        if self.activate_url ~= nil then
-          self:open_popup(self.activate_url, true)
-        end
+    vim.schedule(function()
+      if self.activate_url ~= nil then
+        self:open_popup(self.activate_url, true)
       end
-    )
+    end)
   elseif message.kind == "activation_success" then
     self.activate_url = nil
     print("Supermaven was activated successfully.")
-    vim.schedule(
-      function()
-        self:close_popup()
-      end
-    )
+    vim.schedule(function()
+      self:close_popup()
+    end)
   elseif message.kind == "passthrough" then
     self:process_message(message.passthrough)
   elseif message.kind == "popup" then
@@ -194,11 +193,9 @@ function BinaryLifecycle:process_message(message)
       print("Supermaven " .. message.display .. " is running.")
       self.service_message_displayed = true
     end
-    vim.schedule(
-      function()
-        self:close_popup()
-      end
-    )
+    vim.schedule(function()
+      self:close_popup()
+    end)
   elseif message.kind == "apology" then
     -- legacy
   elseif message.kind == "set" then
@@ -246,7 +243,7 @@ function BinaryLifecycle:send_message(updates)
   loop.write(self.stdin, message) -- fails silently
 end
 
-function BinaryLifecycle:save_state_id(buffer, cursor, file_name)
+function BinaryLifecycle:save_state_id(buffer, cursor, _file_name)
   self.current_state_id = self.current_state_id + 1
   self:purge_old_states()
 
@@ -254,7 +251,7 @@ function BinaryLifecycle:save_state_id(buffer, cursor, file_name)
   if not status then
     return nil
   end
-  
+
   self.state_map[self.current_state_id] = {
     prefix = prefix,
     completion = {},
@@ -318,7 +315,11 @@ function BinaryLifecycle:poll_once()
     return
   end
 
-  while #maybe_completion.dedent > 0 and #maybe_completion.text > 0 and maybe_completion.dedent:sub(1, 1) == maybe_completion.text:sub(1, 1) do
+  while
+    #maybe_completion.dedent > 0
+    and #maybe_completion.text > 0
+    and maybe_completion.dedent:sub(1, 1) == maybe_completion.text:sub(1, 1)
+  do
     maybe_completion.text = maybe_completion.text:sub(2)
     maybe_completion.dedent = maybe_completion.dedent:sub(2)
   end
@@ -362,7 +363,6 @@ function BinaryLifecycle:check_state(prefix, line_before_cursor, line_after_curs
   return textual.derive_completion(best_completion, params)
 end
 
-
 function BinaryLifecycle:completion_text_length(completion)
   local length = 0
   for _, response_item in ipairs(completion) do
@@ -380,7 +380,7 @@ function BinaryLifecycle:strip_prefix(completion, original_prefix)
   for _, response_item in ipairs(completion) do
     if response_item.kind == "text" then
       local text = response_item.text
-      if not self:shares_common_prefix(text, prefix) then 
+      if not self:shares_common_prefix(text, prefix) then
         return nil
       end
       local trim_length = math.min(#text, #prefix)
@@ -416,7 +416,6 @@ function BinaryLifecycle:shares_common_prefix(str1, str2)
   end
   return true
 end
-
 
 function BinaryLifecycle:show_activation_message()
   if self.activate_url ~= nil then
@@ -501,6 +500,5 @@ function BinaryLifecycle:open_popup(message, include_free)
 
   self.win = win
 end
-
 
 return BinaryLifecycle
