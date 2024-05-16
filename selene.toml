@@ -8,3 +8,4 @@ incorrect_standard_library_use = "allow" # This is for cases like `string.format
 mixed_table = "allow"
 unused_variable = "warn"
 undefined_variable = "warn"
+empty_if = "allow"
