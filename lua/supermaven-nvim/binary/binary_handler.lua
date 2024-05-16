@@ -446,6 +446,7 @@ function BinaryLifecycle:use_free_version()
     vim.notify("Loading Supermaven ...", vim.log.levels.WARN, { title = "Supermaven" })
     self.popup_should_open = true
     self.popups_opened = self.popups_opened + 1
+    self:close_popup()
   end
   local message = vim.json.encode({ kind = "use_free_version" }) .. "\n"
   loop.write(self.stdin, message) -- fails silently
@@ -466,6 +467,7 @@ function BinaryLifecycle:logout()
 end
 
 function BinaryLifecycle:use_pro()
+  self:close_popup()
   if self.activate_url ~= nil then
     print("Visit " .. self.activate_url .. " to set up Supermaven Pro")
     self.popup_should_open = true
