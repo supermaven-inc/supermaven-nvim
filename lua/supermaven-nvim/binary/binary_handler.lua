@@ -4,6 +4,7 @@ local u = require("supermaven-nvim.util")
 local textual = require("supermaven-nvim.textual")
 local preview = require("supermaven-nvim.completion_preview")
 local binary_fetcher = require("supermaven-nvim.binary.binary_fetcher")
+local log = require("supermaven-nvim.logger")
 
 
 local binary_path = binary_fetcher:fetch_binary()
@@ -35,7 +36,7 @@ function BinaryLifecycle:start_binary(ignore_filetypes)
   self.last_path = nil
   self.last_context = nil
   self.wants_polling = false
-  self.handle = loop.spawn(binary_path, 
+  self.handle = loop.spawn(binary_path,
     {
       args = {
         "stdio"
@@ -43,13 +44,13 @@ function BinaryLifecycle:start_binary(ignore_filetypes)
       stdio = {self.stdin, self.stdout, self.stderr},
     },
     function(code, signal)
-      print("sm-agent exited with code " .. code)
+      log:debug("sm-agent exited with code " .. code)
       self.handle:close()
       self.handle = nil
     end
   )
   if not self.handle then
-    print("Error starting binary")
+    log:debug("Starting binary")
   end
   self:read_loop()
   self:greeting_message()
@@ -154,8 +155,8 @@ function BinaryLifecycle:process_line(line)
     line = string.sub(line, 12)
     local message = vim.json.decode(line)
     self:process_message(message)
-  else 
-    print("Unknown message: " .. line)
+  else
+    log:debug("Unknown message: " .. line)
   end
 end
 
@@ -175,7 +176,7 @@ function BinaryLifecycle:process_message(message)
     )
   elseif message.kind == "activation_success" then
     self.activate_url = nil
-    print("Supermaven was activated successfully.")
+    log:trace("Supermaven was activated successfully.")
     vim.schedule(
       function()
         self:close_popup()
@@ -191,7 +192,9 @@ function BinaryLifecycle:process_message(message)
     -- unused, no status bar is displayed
   elseif message.kind == "service_tier" then
     if not self.service_message_displayed then
-      print("Supermaven " .. message.display .. " is running.")
+      if message.display then
+        log:trace("Supermaven " .. message.display .. " is running.")
+      end
       self.service_message_displayed = true
     end
     vim.schedule(
@@ -232,7 +235,7 @@ function BinaryLifecycle:on_error(err)
     self.handle:close()
     self.handle = nil
   end
-  print("Error reading stdout: " .. err)
+  log:error("Error reading stdout: " .. err)
 end
 
 function BinaryLifecycle:send_message(updates)
@@ -254,7 +257,7 @@ function BinaryLifecycle:save_state_id(buffer, cursor, file_name)
   if not status then
     return nil
   end
-  
+
   self.state_map[self.current_state_id] = {
     prefix = prefix,
     completion = {},
@@ -380,7 +383,7 @@ function BinaryLifecycle:strip_prefix(completion, original_prefix)
   for _, response_item in ipairs(completion) do
     if response_item.kind == "text" then
       local text = response_item.text
-      if not self:shares_common_prefix(text, prefix) then 
+      if not self:shares_common_prefix(text, prefix) then
         return nil
       end
       local trim_length = math.min(#text, #prefix)
@@ -420,8 +423,10 @@ end
 
 function BinaryLifecycle:show_activation_message()
   if self.activate_url ~= nil then
-    print("Thanks for installing supermaven!")
-    print("Use :SupermavenUsePro to set up Supermaven pro, or use the command :SupermavenUseFree to use the Free Tier")
+    log:info([[Thanks for installing supermaven!
+
+Use :SupermavenUsePro to set up Supermaven pro, or use the command :SupermavenUseFree to use the Free Tier]]
+    )
   end
 end
 
@@ -450,10 +455,10 @@ end
 
 function BinaryLifecycle:use_pro()
   if self.activate_url ~= nil then
-    print("Visit " .. self.activate_url .. " to set up Supermaven Pro")
+    log:debug("Visit " .. self.activate_url .. " to set up Supermaven Pro")
     self:open_popup(self.activate_url)
   else
-    print("Could not find an activation URL.")
+    log:error("Could not find an activation URL.")
   end
 end
 

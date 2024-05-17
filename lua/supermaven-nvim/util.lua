@@ -1,8 +1,5 @@
-M = {}
-
-function M.print(msg)
-  vim.api.nvim_out_write(msg .. "\n")
-end
+local log = require("supermaven-nvim.logger")
+local M = {}
 
 local function compute_lps(pattern, lps)
   local length = 0
@@ -146,9 +143,9 @@ end
 
 function M.print_table(t, message)
   if message == nil then
-    print(vim.inspect(t) .. "\n")
+    log:info(vim.inspect(t) .. "\n")
   else
-    print(message .. ": " .. vim.inspect(t) .. "\n")
+    log:info(message .. ": " .. vim.inspect(t) .. "\n")
   end
 end
 
