@@ -50,16 +50,14 @@ require("supermaven-nvim").setup({
     suggestion_color = "#ffffff",
     cterm = 244,
   },
-  disable_inline_completion = false -- disables inline completion for use with cmp
-
+  disable_inline_completion = false, -- disables inline completion for use with cmp
+  disable_keymaps = false -- disables built in keymaps for more manual control
 })
 ```
 
 ### Using with nvim-cmp
 
-If you are using nvim-cmp, you can use the `supermaven` source by adding the following to your `cmp.setup()` function:
-
-Supermaven's cmp source is registered by default and can be used by adding the following to your `cmp.setup()` function:
+If you are using nvim-cmp, you can use the `supermaven` source (which is registered by default) by adding the following to your `cmp.setup()` function:
 
 ```lua
 -- cmp.lua
@@ -101,6 +99,33 @@ cmp.setup {
   }
   ...
 }
+```
+
+### Programatically checking and accepting suggestions
+
+Alternatively, you can also check if there is an active suggestion and accept it programatically.
+
+For example:
+
+```lua
+require("supermaven-nvim").setup({
+  disable_keymaps = true
+})
+
+...
+
+M.expand = function(fallback)
+  local luasnip = require('luasnip')
+  local suggestion = require('supermaven-nvim.completion_preview')
+
+  if luasnip.expandable() then
+    luasnip.expand()
+  elseif suggestion.has_suggestion() then
+    suggestion.on_accept_suggestion()
+  else
+    fallback()
+  end
+end
 ```
 
 ## Usage

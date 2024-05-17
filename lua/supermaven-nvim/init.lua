@@ -6,13 +6,12 @@ local config = require("supermaven-nvim.config")
 
 M = {}
 
-
 M.setup = function(args)
   local config_settings = config.setup_config(args)
 
   if config_settings.disable_inline_completion then
     completion_preview.disable_inline_completion = true
-  else
+  elseif not config_settings.disable_keymaps then
     if config_settings.keymaps.accept_suggestion ~= nil then
       local accept_suggestion_key = config_settings.keymaps.accept_suggestion
       vim.keymap.set('i', accept_suggestion_key, completion_preview.on_accept_suggestion,

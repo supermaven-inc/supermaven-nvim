@@ -127,6 +127,10 @@ function CompletionPreview:should_completion_be_active(completion_text, line_bef
   return false
 end
 
+function CompletionPreview:get_inlay_instance()
+  return self.inlay_instance
+end
+
 function CompletionPreview.on_accept_suggestion(is_partial)
   local accept_completion = CompletionPreview:accept_completion_text(is_partial)
   if accept_completion ~= nil and accept_completion.is_active then
@@ -165,8 +169,10 @@ function CompletionPreview.on_dispose_inlay()
   CompletionPreview:dispose_inlay()
 end
 
-function CompletionPreview:get_inlay_instance()
-  return self.inlay_instance
+function CompletionPreview.has_suggestion()
+  local inlay_instance = CompletionPreview:get_inlay_instance()
+  return inlay_instance ~= nil and inlay_instance.is_active and inlay_instance.completion_text ~= nil and
+      inlay_instance.completion_text ~= ""
 end
 
 return CompletionPreview

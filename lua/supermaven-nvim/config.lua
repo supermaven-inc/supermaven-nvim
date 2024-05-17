@@ -5,7 +5,8 @@ local default_config = {
     accept_word = "<C-j>",
   },
   ignore_filetypes = {},
-  disable_inline_completion = false
+  disable_inline_completion = false,
+  disable_keymaps = false
 }
 
 M = {}
@@ -16,3 +17,4 @@ M.setup_config = function(args)
 end
 
 return M
+
