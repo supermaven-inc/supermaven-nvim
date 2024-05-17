@@ -41,6 +41,7 @@ require("supermaven-nvim").setup({
   },
   debug = false, -- set to true to enable debug logging
   silence_info = false, -- set to true to silence info messages
+  log_level = "warn", -- set to "off" to disable logging completely
 })
 ```
 
