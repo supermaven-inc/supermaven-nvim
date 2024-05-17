@@ -1,8 +1,9 @@
 local binary = require("supermaven-nvim.binary.binary_handler")
 local completion_preview = require("supermaven-nvim.completion_preview")
-local u = require("supermaven-nvim.util")
-local listener = require("supermaven-nvim.document_listener")
+local _u = require("supermaven-nvim.util")
+local _listener = require("supermaven-nvim.document_listener")
 local config = require("supermaven-nvim.config")
+local log = require("supermaven-nvim.logger")
 
 local M = {}
 
@@ -59,8 +60,22 @@ M.setup = function(args)
 	end
 
 	vim.api.nvim_create_user_command("SupermavenShowLog", function()
-		vim.cmd(string.format(":e %s", require("supermaven-nvim.logger"):get_log_path()))
+    local log_path = require("supermaven-nvim.logger"):get_log_path()
+    if log_path ~= nil then
+      vim.cmd(string.format(":e %s", log_path))
+    else
+      log:warn("No log file found to show!")
+    end
 	end, {})
+
+  vim.api.nvim_create_user_command("SupermavenClearLog", function()
+    local log_path = require("supermaven-nvim.logger"):get_log_path()
+    if log_path ~= nil then
+      vim.loop.fs_unlink(log_path)
+      else
+        log:warn("No log file found to remove!")
+    end
+  end, {})
 end
 
 return M
