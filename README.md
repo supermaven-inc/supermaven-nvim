@@ -38,7 +38,9 @@ require("supermaven-nvim").setup({
   color = {
     suggestion_color = "#ffffff",
     cterm = 244,
-  }
+  },
+  debug = false, -- set to true to enable debug logging
+  silence_info = false, -- set to true to silence info messages
 })
 ```
 
@@ -47,3 +49,5 @@ require("supermaven-nvim").setup({
 Upon starting supermaven-nvim, you will be prompted to either use the Free Tier with the command `:SupermavenUseFree` or to activate a Supermaven Pro subscription by following a link, which will connect your Supermaven account.
 
 If Supermaven is set up, you can use `:SupermavenLogout` to switch versions.
+
+You can also use `:SupermavenShowLog` to view the logged messages in `path/to/stdpath-cache/supermaven-nvim.log` if you encounter any issues. Or `:SupermavenClearLog` to clear the log file.
