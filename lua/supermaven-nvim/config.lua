@@ -5,6 +5,7 @@ local default_config = {
     accept_word = "<C-j>",
   },
   ignore_filetypes = {},
+  disable_inline_completion = false
 }
 
 M = {}

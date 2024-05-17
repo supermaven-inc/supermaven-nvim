@@ -4,6 +4,7 @@ local CompletionPreview = {
   inlay_instance = nil,
   ns_id = vim.api.nvim_create_namespace('supermaven'),
   suggestion_group = "Comment",
+  disable_inline_completion = false,
 }
 
 CompletionPreview.__index = CompletionPreview
@@ -29,7 +30,9 @@ function CompletionPreview:render_with_inlay(buffer, prior_delete, completion_te
   local first_line = processed_text.first_line
   local other_lines = processed_text.other_lines
 
-  if (#line_after_cursor > 0) and (not u.contains(first_line, line_after_cursor)) then
+  local is_floating = (#line_after_cursor > 0) and (not u.contains(first_line, line_after_cursor))
+
+  if (is_floating) then
     self:render_floating(first_line, opts, buf, line_before_cursor)
     completion_text = first_line
   else
@@ -40,20 +43,32 @@ function CompletionPreview:render_with_inlay(buffer, prior_delete, completion_te
     buffer = buffer,
     completion_text = completion_text,
     is_active = self:should_completion_be_active(completion_text, line_before_cursor, first_line),
+    line_before_cursor = line_before_cursor,
+    line_after_cursor = line_after_cursor,
+    is_floating = is_floating,
   }
   self.inlay_instance = new_instance
 end
 
 function CompletionPreview:render_floating(first_line, opts, buf, line_before_cursor)
+  if self.disable_inline_completion then
+    return
+  end
+
   if first_line ~= "" then
     opts.virt_text = { { u.trim_start(line_before_cursor) .. first_line, self.suggestion_group } }
   end
 
   opts.virt_text_pos = "eol"
+
   local _extmark_id = vim.api.nvim_buf_set_extmark(buf, self.ns_id, vim.fn.line(".") - 1, 0, opts) -- :h api-extended-marks
 end
 
 function CompletionPreview:render_standard(first_line, other_lines, opts, buf)
+  if self.disable_inline_completion then
+    return
+  end
+
   if first_line ~= "" then
     opts.virt_text = { { first_line, self.suggestion_group } }
   end
@@ -62,6 +77,7 @@ function CompletionPreview:render_standard(first_line, other_lines, opts, buf)
   end
 
   opts.virt_text_win_col = vim.fn.virtcol(".") - 1
+
   local _extmark_id = vim.api.nvim_buf_set_extmark(buf, self.ns_id, vim.fn.line(".") - 1, vim.fn.col(".") - 1, opts) -- :h api-extended-marks
 end
 
@@ -91,10 +107,9 @@ function CompletionPreview:accept_completion_text(is_partial)
     if is_partial then
       completion_text = u.to_next_word(completion_text)
     end
-    return {completion_text = completion_text, prior_delete = prior_delete, is_active = current_instance.is_active}
+    return { completion_text = completion_text, prior_delete = prior_delete, is_active = current_instance.is_active }
   end
 end
-
 
 function CompletionPreview:should_completion_be_active(completion_text, line_before_cursor, first_line)
   if (completion_text == "") or (not completion_text:sub(1, 1):match("%s")) then
@@ -130,14 +145,15 @@ function CompletionPreview.on_accept_suggestion(is_partial)
     }
 
     vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Space><Left><Del>", true, false, true), "n", false)
-    vim.lsp.util.apply_text_edits({{ range = range, newText = completion_text }}, vim.api.nvim_get_current_buf(), "utf-16")
+    vim.lsp.util.apply_text_edits({ { range = range, newText = completion_text } }, vim.api.nvim_get_current_buf(),
+      "utf-16")
 
     local lines = u.line_count(completion_text)
     local last_line = u.get_last_line(completion_text)
-    local new_cursor_pos = {cursor[1] + lines , cursor[2] + #last_line + 1}
+    local new_cursor_pos = { cursor[1] + lines, cursor[2] + #last_line + 1 }
     vim.api.nvim_win_set_cursor(0, new_cursor_pos)
   else
-    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Tab>", true, false , true), "n", true)
+    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Tab>", true, false, true), "n", true)
   end
 end
 
@@ -147,6 +163,10 @@ end
 
 function CompletionPreview.on_dispose_inlay()
   CompletionPreview:dispose_inlay()
+end
+
+function CompletionPreview:get_inlay_instance()
+  return self.inlay_instance
 end
 
 return CompletionPreview
