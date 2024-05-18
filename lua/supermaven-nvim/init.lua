@@ -52,7 +52,7 @@ M.setup = function(args)
   else
     if config_settings.disable_inline_completion then
       vim.notify(
-        "nvim-cmp is not available, but inline completion is disabled. SuperMaven nvim-cmp source will not be registered.",
+        "nvim-cmp is not available, but inline completion is disabled. Supermaven nvim-cmp source will not be registered.",
         vim.log.levels.WARN)
     end
   end
