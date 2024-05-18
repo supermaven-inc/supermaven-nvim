@@ -19,6 +19,17 @@ require("lazy").setup({
 }, {})
 ```
 
+### Using [packer.nvim](https://github.com/wbthomason/packer.nvim)
+
+```lua
+use {
+  "supermaven-inc/supermaven-nvim",
+  config = function()
+    require("supermaven-nvim").setup({})
+  end,
+}
+```
+
 ### Optional configuration
 
 By default, supermaven-nvim will use the `<Tab>` and `<C-]>` keymaps to accept and clear suggestions. You can change these keymaps by passing a `keymaps` table to the .setup({}) function. Also in this table is `accept_word`, which allows partially accepting a completion, up to the end of the next word. By default this keymap is set to `<C-j>`.
@@ -38,8 +49,83 @@ require("supermaven-nvim").setup({
   color = {
     suggestion_color = "#ffffff",
     cterm = 244,
-  }
+  },
+  disable_inline_completion = false, -- disables inline completion for use with cmp
+  disable_keymaps = false -- disables built in keymaps for more manual control
 })
+```
+
+### Using with nvim-cmp
+
+If you are using nvim-cmp, you can use the `supermaven` source (which is registered by default) by adding the following to your `cmp.setup()` function:
+
+```lua
+-- cmp.lua
+cmp.setup {
+  ...
+  sources = {
+    { name = "supermaven" },
+  }
+  ...
+}
+```
+
+It also has a builtin highlight group CmpItemKindSupermaven. To add an icon to Supermaven for lspkind, simply add Supermaven to your lspkind symbol map.
+
+```lua
+-- lspkind.lua
+local lspkind = require("lspkind")
+lspkind.init({
+  symbol_map = {
+    Supermaven = "",
+  },
+})
+
+vim.api.nvim_set_hl(0, "CmpItemKindSupermaven", {fg ="#6CC644"})
+```
+
+Alternatively, you can add Supermaven to the lspkind symbol_map within the cmp format function.
+
+```lua
+-- cmp.lua
+cmp.setup {
+  ...
+  formatting = {
+    format = lspkind.cmp_format({
+      mode = "symbol",
+      max_width = 50,
+      symbol_map = { Supermaven = "" }
+    })
+  }
+  ...
+}
+```
+
+### Programatically checking and accepting suggestions
+
+Alternatively, you can also check if there is an active suggestion and accept it programatically.
+
+For example:
+
+```lua
+require("supermaven-nvim").setup({
+  disable_keymaps = true
+})
+
+...
+
+M.expand = function(fallback)
+  local luasnip = require('luasnip')
+  local suggestion = require('supermaven-nvim.completion_preview')
+
+  if luasnip.expandable() then
+    luasnip.expand()
+  elseif suggestion.has_suggestion() then
+    suggestion.on_accept_suggestion()
+  else
+    fallback()
+  end
+end
 ```
 
 ## Usage
