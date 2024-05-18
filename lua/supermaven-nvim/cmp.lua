@@ -3,13 +3,18 @@ local CompletionPreview = require("supermaven-nvim.completion_preview")
 
 local source = { executions = {}, }
 
-local label_text = function(text)
+local label_text = function(text, lines)
+  if lines > 1 then
+    text = text .. " ~"
+  end
+
   local shorten = function(str)
     local short_prefix = string.sub(str, 0, 20)
     local short_suffix = string.sub(str, string.len(str) - 15, string.len(str))
     local delimiter = " ... "
     return short_prefix .. delimiter .. short_suffix
   end
+
   text = text:gsub("^%s*", "")
   return string.len(text) > 40 and shorten(text) or text
 end
@@ -68,7 +73,8 @@ function source.complete(self, params, callback)
 
   local completion_text = (inlay_instance.line_before_cursor) .. inlay_instance.completion_text
   local preview_text    = completion_text
-  local label           = label_text(vim.split(completion_text, "\n", { plain = true })[1])
+  local split           = vim.split(completion_text, "\n", { plain = true })
+  local label           = label_text(split[1], #split)
   -- local label           = u.trim_start(vim.split(completion_text, "\n", { plain = true })[1])
 
   -- print("Completion label:", label)
