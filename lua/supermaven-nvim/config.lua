@@ -13,12 +13,14 @@
 ---@field color SupermavenColor|nil: The color of the suggestion.
 
 local default_config = {
-	keymaps = {
-		accept_suggestion = "<Tab>",
-		clear_suggestion = "<C-]>",
-		accept_word = "<C-j>",
-	},
-	ignore_filetypes = {},
+  keymaps = {
+    accept_suggestion = "<Tab>",
+    clear_suggestion = "<C-]>",
+    accept_word = "<C-j>",
+  },
+  ignore_filetypes = {},
+  disable_inline_completion = false,
+  disable_keymaps = false
 }
 
 M = {}
