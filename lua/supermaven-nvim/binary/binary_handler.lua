@@ -35,7 +35,7 @@ function BinaryLifecycle:start_binary(ignore_filetypes)
   self.last_path = nil
   self.last_context = nil
   self.wants_polling = false
-  self.handle = loop.spawn(binary_path, 
+  self.handle = loop.spawn(binary_path,
     {
       args = {
         "stdio"
@@ -154,7 +154,7 @@ function BinaryLifecycle:process_line(line)
     line = string.sub(line, 12)
     local message = vim.json.decode(line)
     self:process_message(message)
-  else 
+  else
     print("Unknown message: " .. line)
   end
 end
@@ -254,7 +254,7 @@ function BinaryLifecycle:save_state_id(buffer, cursor, file_name)
   if not status then
     return nil
   end
-  
+
   self.state_map[self.current_state_id] = {
     prefix = prefix,
     completion = {},
@@ -380,7 +380,7 @@ function BinaryLifecycle:strip_prefix(completion, original_prefix)
   for _, response_item in ipairs(completion) do
     if response_item.kind == "text" then
       local text = response_item.text
-      if not self:shares_common_prefix(text, prefix) then 
+      if not self:shares_common_prefix(text, prefix) then
         return nil
       end
       local trim_length = math.min(#text, #prefix)
@@ -470,8 +470,15 @@ function BinaryLifecycle:open_popup(message, include_free)
   end
   local buf = vim.api.nvim_create_buf(false, true)
 
-  local width = vim.api.nvim_get_option("columns")
-  local height = vim.api.nvim_get_option("lines")
+  local width = 0
+  local height = 0
+  if vim.version().minor >= 10 then
+    width = vim.api.nvim_get_option_value("columns", { scope = "local" })
+    height = vim.api.nvim_get_option_value("lines", { scope = "local" })
+  else
+    width = vim.api.nvim_get_option("columns")
+    height = vim.api.nvim_get_option("lines")
+  end
 
   local intro_message = "Please visit the following Url to set up Supermaven Pro"
   if include_free then
@@ -496,8 +503,13 @@ function BinaryLifecycle:open_popup(message, include_free)
 
   local win = vim.api.nvim_open_win(buf, true, opts)
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, { intro_message, "", message .. " " })
-  vim.api.nvim_win_set_option(win, "winhl", "Normal:Normal")
-  vim.api.nvim_win_set_option(win, "wrap", true)
+  if vim.version().minor >= 10 then
+    vim.api.nvim_set_option_value("winblend", 10, { scope = "local", win = win })
+    vim.api.nvim_set_option_value("winhighlight", "Normal:Normal", { scope = "local", win = win })
+  else
+    vim.api.nvim_win_set_option(win, "winhl", "Normal:Normal")
+    vim.api.nvim_win_set_option(win, "wrap", true)
+  end
 
   self.win = win
 end
