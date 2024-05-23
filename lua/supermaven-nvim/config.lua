@@ -16,6 +16,9 @@ local default_config = {
 	silence_info = false,
 	log_level = "warn",
 	__setup = false,
+  ignore_filetypes = {},
+  disable_inline_completion = false,
+  disable_keymaps = false
 }
 
 local M = {}
