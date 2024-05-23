@@ -504,8 +504,8 @@ function BinaryLifecycle:open_popup(message, include_free)
   local win = vim.api.nvim_open_win(buf, true, opts)
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, { intro_message, "", message .. " " })
   if vim.version().minor >= 10 then
-    vim.api.nvim_set_option_value("winblend", 10, { scope = "local", win = win })
-    vim.api.nvim_set_option_value("winhighlight", "Normal:Normal", { scope = "local", win = win })
+    vim.api.nvim_set_option_value("winhl", "Normal:Normal", { scope = "local", win = win })
+    vim.api.nvim_set_option_value("wrap", true, { scope = "local", win = win })
   else
     vim.api.nvim_win_set_option(win, "winhl", "Normal:Normal")
     vim.api.nvim_win_set_option(win, "wrap", true)
