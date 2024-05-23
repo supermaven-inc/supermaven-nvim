@@ -4,6 +4,7 @@ local CompletionPreview = {
   inlay_instance = nil,
   ns_id = vim.api.nvim_create_namespace("supermaven"),
   suggestion_group = "Comment",
+  disable_inline_completion = false,
 }
 
 CompletionPreview.__index = CompletionPreview
@@ -35,7 +36,9 @@ function CompletionPreview:render_with_inlay(
   local first_line = processed_text.first_line
   local other_lines = processed_text.other_lines
 
-  if (#line_after_cursor > 0) and (not u.contains(first_line, line_after_cursor)) then
+  local is_floating = (#line_after_cursor > 0) and (not u.contains(first_line, line_after_cursor))
+
+  if (is_floating) then
     self:render_floating(first_line, opts, buf, line_before_cursor)
     completion_text = first_line
   else
@@ -46,20 +49,32 @@ function CompletionPreview:render_with_inlay(
     buffer = buffer,
     completion_text = completion_text,
     is_active = self:should_completion_be_active(completion_text, line_before_cursor, first_line),
+    line_before_cursor = line_before_cursor,
+    line_after_cursor = line_after_cursor,
+    is_floating = is_floating,
   }
   self.inlay_instance = new_instance
 end
 
 function CompletionPreview:render_floating(first_line, opts, buf, line_before_cursor)
+  if self.disable_inline_completion then
+    return
+  end
+
   if first_line ~= "" then
     opts.virt_text = { { u.trim_start(line_before_cursor) .. first_line, self.suggestion_group } }
   end
 
   opts.virt_text_pos = "eol"
+
   local _extmark_id = vim.api.nvim_buf_set_extmark(buf, self.ns_id, vim.fn.line(".") - 1, 0, opts) -- :h api-extended-marks
 end
 
 function CompletionPreview:render_standard(first_line, other_lines, opts, buf)
+  if self.disable_inline_completion then
+    return
+  end
+
   if first_line ~= "" then
     opts.virt_text = { { first_line, self.suggestion_group } }
   end
@@ -68,6 +83,7 @@ function CompletionPreview:render_standard(first_line, other_lines, opts, buf)
   end
 
   opts.virt_text_win_col = vim.fn.virtcol(".") - 1
+
   local _extmark_id = vim.api.nvim_buf_set_extmark(buf, self.ns_id, vim.fn.line(".") - 1, vim.fn.col(".") - 1, opts) -- :h api-extended-marks
 end
 
@@ -117,6 +133,10 @@ function CompletionPreview:should_completion_be_active(completion_text, line_bef
   return false
 end
 
+function CompletionPreview:get_inlay_instance()
+  return self.inlay_instance
+end
+
 function CompletionPreview.on_accept_suggestion(is_partial)
   local accept_completion = CompletionPreview:accept_completion_text(is_partial)
   if accept_completion ~= nil and accept_completion.is_active then
@@ -156,6 +176,12 @@ end
 
 function CompletionPreview.on_dispose_inlay()
   CompletionPreview:dispose_inlay()
+end
+
+function CompletionPreview.has_suggestion()
+  local inlay_instance = CompletionPreview:get_inlay_instance()
+  return inlay_instance ~= nil and inlay_instance.is_active and inlay_instance.completion_text ~= nil and
+      inlay_instance.completion_text ~= ""
 end
 
 return CompletionPreview
