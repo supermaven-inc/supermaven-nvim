@@ -46,7 +46,7 @@ function BinaryFetcher:discover_binary_url()
     }
     response = string.gsub(response, "[\r\n]+", "")
   else
-    response = vim.fn.system("curl -s " .. "'" .. url .. "'")
+    response = vim.fn.system({"curl", "-s", url})
   end
 
   local json = vim.fn.json_decode(response)
