@@ -6,7 +6,7 @@ local default_config = {
   },
   ignore_filetypes = {},
   disable_inline_completion = false,
-  disable_keymaps = false
+  disable_keymaps = false,
 }
 
 local M = {}

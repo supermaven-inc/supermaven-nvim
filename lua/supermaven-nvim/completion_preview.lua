@@ -38,7 +38,7 @@ function CompletionPreview:render_with_inlay(
 
   local is_floating = (#line_after_cursor > 0) and (not u.contains(first_line, line_after_cursor))
 
-  if (is_floating) then
+  if is_floating then
     self:render_floating(first_line, opts, buf, line_before_cursor)
     completion_text = first_line
   else
@@ -180,8 +180,10 @@ end
 
 function CompletionPreview.has_suggestion()
   local inlay_instance = CompletionPreview:get_inlay_instance()
-  return inlay_instance ~= nil and inlay_instance.is_active and inlay_instance.completion_text ~= nil and
-      inlay_instance.completion_text ~= ""
+  return inlay_instance ~= nil
+    and inlay_instance.is_active
+    and inlay_instance.completion_text ~= nil
+    and inlay_instance.completion_text ~= ""
 end
 
 return CompletionPreview

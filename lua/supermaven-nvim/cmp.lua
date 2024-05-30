@@ -1,7 +1,7 @@
 local CompletionPreview = require("supermaven-nvim.completion_preview")
 -- local u = require("supermaven-nvim.util")
 
-local source = { executions = {}, }
+local source = { executions = {} }
 
 local label_text = function(text, lines)
   if lines > 1 then
@@ -20,11 +20,11 @@ local label_text = function(text, lines)
 end
 
 function source.get_trigger_characters()
-  return { '*' }
+  return { "*" }
 end
 
 function source.get_keyword_pattern()
-  return '.'
+  return "."
 end
 
 function source.is_available()
@@ -39,13 +39,13 @@ function source.resolve(self, completion_item, callback)
   callback(completion_item)
 end
 
-function source.execute(self, completion_item, callback)
+function source.execute(_self, completion_item, callback)
   CompletionPreview:dispose_inlay()
 
   callback(completion_item)
 end
 
-function source.complete(self, params, callback)
+function source.complete(_self, _params, callback)
   local inlay_instance = CompletionPreview:get_inlay_instance()
 
   if inlay_instance == nil or inlay_instance.is_active == false then
@@ -57,29 +57,29 @@ function source.complete(self, params, callback)
   end
 
   -- local context         = params.context
-  local cursor          = vim.api.nvim_win_get_cursor(0)
+  local cursor = vim.api.nvim_win_get_cursor(0)
 
-  local range           = {
+  local range = {
     start = {
       line = cursor[1] - 1,
       -- character = math.max(cursor[2] - inlay_instance.prior_delete, 0),
-      character = vim.fn.col("0")
+      character = vim.fn.col("0"),
     },
     ["end"] = {
       line = cursor[1] - 1,
-      character = vim.fn.col("$")
-    }
+      character = vim.fn.col("$"),
+    },
   }
 
-  local completion_text = (inlay_instance.line_before_cursor) .. inlay_instance.completion_text
-  local preview_text    = completion_text
-  local split           = vim.split(completion_text, "\n", { plain = true })
-  local label           = label_text(split[1], #split)
+  local completion_text = inlay_instance.line_before_cursor .. inlay_instance.completion_text
+  local preview_text = completion_text
+  local split = vim.split(completion_text, "\n", { plain = true })
+  local label = label_text(split[1], #split)
   -- local label           = u.trim_start(vim.split(completion_text, "\n", { plain = true })[1])
 
   -- print("Completion label:", label)
 
-  local items           = {
+  local items = {
     {
       label = label,
       kind = 1,
@@ -87,7 +87,7 @@ function source.complete(self, params, callback)
       filterText = nil,
       cmp = {
         kind_hl_group = "CmpItemKindSupermaven",
-        kind_text = 'Supermaven',
+        kind_text = "Supermaven",
       },
       textEdit = {
         newText = completion_text,
@@ -96,23 +96,21 @@ function source.complete(self, params, callback)
       },
       documentation = {
         kind = "markdown",
-        value = "```" ..
-            vim.bo.filetype ..
-            "\n" .. preview_text .. "\n```"
+        value = "```" .. vim.bo.filetype .. "\n" .. preview_text .. "\n```",
       },
-      dup = 0
-    }
+      dup = 0,
+    },
   }
 
   return callback({
     isIncomplete = false,
-    items = items
+    items = items,
   })
 end
 
-function source.new(client, opts)
+function source.new(client, _opts)
   local self = setmetatable({
-    timer = vim.loop.new_timer()
+    timer = vim.loop.new_timer(),
   }, { __index = source })
 
   self.client = client

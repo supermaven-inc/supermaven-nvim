@@ -15,7 +15,7 @@ M.setup = function(args)
     if config_settings.keymaps.accept_suggestion ~= nil then
       local accept_suggestion_key = config_settings.keymaps.accept_suggestion
       vim.keymap.set(
-        'i',
+        "i",
         accept_suggestion_key,
         completion_preview.on_accept_suggestion,
         { noremap = true, silent = true }
@@ -25,7 +25,8 @@ M.setup = function(args)
     if config_settings.keymaps.accept_word ~= nil then
       local accept_word_key = config_settings.keymaps.accept_word
       vim.keymap.set(
-        'i', accept_word_key,
+        "i",
+        accept_word_key,
         completion_preview.on_accept_suggestion_word,
         { noremap = true, silent = true }
       )
@@ -33,11 +34,7 @@ M.setup = function(args)
 
     if config_settings.keymaps.clear_suggestion ~= nil then
       local clear_suggestion_key = config_settings.keymaps.clear_suggestion
-      vim.keymap.set(
-        'i', clear_suggestion_key,
-        completion_preview.on_dispose_inlay,
-        { noremap = true, silent = true }
-      )
+      vim.keymap.set("i", clear_suggestion_key, completion_preview.on_dispose_inlay, { noremap = true, silent = true })
     end
   end
 
@@ -64,7 +61,8 @@ M.setup = function(args)
     if config_settings.disable_inline_completion then
       vim.notify(
         "nvim-cmp is not available, but inline completion is disabled. Supermaven nvim-cmp source will not be registered.",
-        vim.log.levels.WARN)
+        vim.log.levels.WARN
+      )
     end
   end
 end
