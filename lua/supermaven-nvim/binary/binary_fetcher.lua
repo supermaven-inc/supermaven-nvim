@@ -33,7 +33,18 @@ function BinaryFetcher:discover_binary_url()
   local url = "https://supermaven.com/api/download-path?platform=" .. platform .. "&arch=" .. arch .. "&editor=neovim"
   local response = ""
   if platform == "windows" then
-    response = vim.fn.system('powershell -Command "Invoke-WebRequest -Uri ' .. "'" .. url .. "'" .. ' -UseBasicParsing | Select-Object -ExpandProperty Content"')
+    response = vim.fn.system {
+      'powershell',
+      '-Command',
+      'Invoke-WebRequest',
+      '-Uri',
+      "'" .. url .. "'",
+      '-UseBasicParsing',
+      '|',
+      'Select-Object',
+      '-ExpandProperty',
+      'Content'
+    }
     response = string.gsub(response, "[\r\n]+", "")
   else
     response = vim.fn.system("curl -s " .. "'" .. url .. "'")
@@ -70,7 +81,15 @@ function BinaryFetcher:fetch_binary()
   local platform = self:platform()
   local response = ""
   if platform == "windows" then
-    response = vim.fn.system('powershell -Command "Invoke-WebRequest -Uri ' .. "'" .. url .. "'" .. ' -OutFile ' .. "'" .. local_binary_path .. "'" .. '"')
+    response = vim.fn.system {
+      'powershell',
+      '-Command',
+      'Invoke-WebRequest',
+      '-Uri',
+      "'" .. url .. "'",
+      '-OutFile',
+      "'" .. local_binary_path .. "'"
+    }
   else
     response = vim.fn.system("curl -o " .. local_binary_path .. " " .. "'" .. url .. "'")
   end
