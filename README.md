@@ -101,6 +101,67 @@ cmp.setup {
 }
 ```
 
+Pro tip: If you want to simulate continuous suggestions similar to the built in inline completions (which always jumps to the next suggestion); you can achieve this with a timer/poller.
+
+```lua
+local completion_timer = nil
+
+local function stop_completion_polling()
+  if completion_timer ~= nil then
+    completion_timer:stop()
+    completion_timer:close()
+    completion_timer = nil
+  end
+end
+
+local function check_suggestions()
+  if supermaven.has_suggestion() then
+    cmp.complete()
+    stop_completion_polling()
+  end
+end
+
+local function start_completion_polling()
+  local ignored_filetypes = {
+    -- IMPORTANT: filetypes you want to ignore
+  }
+
+  if not vim.tbl_contains(ignored_filetypes, vim.bo.filetype) then
+    if completion_timer == nil then
+      completion_timer = vim.loop.new_timer()
+      completion_timer:start(100, 100, vim.schedule_wrap(check_suggestions))
+    end
+  end
+end
+
+vim.api.nvim_create_autocmd('InsertEnter', {
+  callback = start_completion_polling,
+})
+
+vim.api.nvim_create_autocmd({ 'CursorMoved', 'InsertLeave' }, {
+  callback = stop_completion_polling,
+  pattern = '*',
+  nested = true,
+})
+
+
+-- cmp.lua
+
+cmp.setup {
+  ...
+  mapping = {
+    ...
+    ["<C-y>"] = cmp.mapping(function()
+      cmp.confirm({  select = true })
+      start_completion_polling()
+    end),
+    ...
+  },
+  ...
+}
+
+```
+
 ### Programatically checking and accepting suggestions
 
 Alternatively, you can also check if there is an active suggestion and accept it programatically.
