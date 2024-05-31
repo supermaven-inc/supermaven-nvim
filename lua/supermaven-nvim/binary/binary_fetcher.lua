@@ -5,6 +5,18 @@ local BinaryFetcher = {
   homedir = vim.loop.os_homedir()
 }
 
+local function generate_temp_path(n)
+  local charset = "abcdefghijklmnopqrstuvwxyz0123456789"
+  local random_string = ""
+
+  for _ = 1, n do
+    local random_index = math.random(1, #charset)
+    random_string = random_string .. string.sub(charset, random_index, random_index)
+  end
+
+  return random_string .. ".tmp"
+end
+
 function BinaryFetcher:platform()
   local os = self.os_uname.sysname
   if os == "Darwin" then
@@ -77,6 +89,8 @@ function BinaryFetcher:fetch_binary()
   end
 
   print("Downloading Supermaven binary, please wait...")
+  local temp_path = generate_temp_path(10)
+
   local platform = self:platform()
   local response = ""
   if platform == "windows" then
@@ -90,9 +104,12 @@ function BinaryFetcher:fetch_binary()
       "'" .. local_binary_path .. "'"
     }
   else
-    response = vim.fn.system({"curl", "-o", local_binary_path, url})
+    response = vim.fn.system({"curl", "-o", temp_path, url})
   end
   if vim.v.shell_error == 0 then
+    if platform ~= "windows" then
+      vim.fn.system({"mv", temp_path, local_binary_path})
+    end
     print("Downloaded binary sm-agent to " .. local_binary_path)
   else
     print("Error: sm-agent download failed")
