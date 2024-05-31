@@ -35,7 +35,7 @@ function BinaryLifecycle:start_binary(ignore_filetypes)
   self.last_path = nil
   self.last_context = nil
   self.wants_polling = false
-  self.handle = loop.spawn(binary_path, 
+  self.handle = loop.spawn(binary_path,
     {
       args = {
         "stdio"
@@ -61,6 +61,16 @@ function BinaryLifecycle:greeting_message()
 end
 
 function BinaryLifecycle:on_update(buffer, file_name, event_type)
+  for _, filetype in ipairs(self.ignore_filetypes) do
+    if vim.bo.ft == filetype then
+      if self.handle ~= nil then
+        self.handle:close()
+        self.handle = nil
+      end
+      self.wants_polling = false
+      return
+    end
+  end
   local buffer_text = u.get_text(buffer)
   local updates = {
     {
@@ -154,7 +164,7 @@ function BinaryLifecycle:process_line(line)
     line = string.sub(line, 12)
     local message = vim.json.decode(line)
     self:process_message(message)
-  else 
+  else
     print("Unknown message: " .. line)
   end
 end
@@ -254,7 +264,7 @@ function BinaryLifecycle:save_state_id(buffer, cursor, file_name)
   if not status then
     return nil
   end
-  
+
   self.state_map[self.current_state_id] = {
     prefix = prefix,
     completion = {},
@@ -281,12 +291,19 @@ function BinaryLifecycle:provide_inline_completion_items(buffer, cursor, context
 end
 
 function BinaryLifecycle:poll_once()
+  for _, filetype in ipairs(self.ignore_filetypes) do
+    if vim.bo.ft == filetype then
+      if self.handle ~= nil then
+        self.handle:close()
+        self.handle = nil
+      end
+      self.wants_polling = false
+      return
+    end
+  end
   local now = vim.loop.now()
   if now - self.last_provide_time > 5 * 1000 then
     self.wants_polling = false
-    return
-  end
-  if self.ignore_filetypes[vim.bo.filetype] then
     return
   end
   self.wants_polling = true
@@ -380,7 +397,7 @@ function BinaryLifecycle:strip_prefix(completion, original_prefix)
   for _, response_item in ipairs(completion) do
     if response_item.kind == "text" then
       local text = response_item.text
-      if not self:shares_common_prefix(text, prefix) then 
+      if not self:shares_common_prefix(text, prefix) then
         return nil
       end
       local trim_length = math.min(#text, #prefix)
