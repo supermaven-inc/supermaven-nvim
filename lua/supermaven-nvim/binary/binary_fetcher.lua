@@ -2,7 +2,7 @@ local BinaryFetcher = {
   binary_path = nil,
   binary_url = nil,
   os_uname = vim.loop.os_uname(),
-  homedir = vim.loop.os_homedir()
+  homedir = nil,
 }
 
 function BinaryFetcher:platform()
@@ -112,7 +112,14 @@ end
 
 function BinaryFetcher:local_binary_parent_path()
   local home_dir = self.homedir
-  return home_dir .. "/.supermaven/binary/v15/" .. self:platform() .. "-" .. self:get_arch()
+  local data_dir = os.getenv("XDG_DATA_HOME")
+  local dir
+  if data_dir then
+    dir = data_dir .. "/supermaven"
+  else
+    dir = home_dir .. "/.supermaven"
+  end
+  return dir .. "/binary/v15/" .. self:platform() .. "-" .. self:get_arch()
 end
 
 
