@@ -1,4 +1,4 @@
-M = {}
+local M = {}
 
 function M.print(msg)
   vim.api.nvim_out_write(msg .. "\n")

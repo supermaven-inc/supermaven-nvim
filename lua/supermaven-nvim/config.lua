@@ -9,7 +9,7 @@ local default_config = {
   disable_keymaps = false
 }
 
-M = {}
+local M = {}
 
 M.setup_config = function(args)
   local config = vim.tbl_deep_extend("force", default_config, args)

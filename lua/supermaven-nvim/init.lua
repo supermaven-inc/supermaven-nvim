@@ -4,7 +4,7 @@ local u = require("supermaven-nvim.util")
 local listener = require("supermaven-nvim.document_listener")
 local config = require("supermaven-nvim.config")
 
-M = {}
+local M = {}
 
 M.setup = function(args)
   local config_settings = config.setup_config(args)
