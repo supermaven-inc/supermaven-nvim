@@ -5,6 +5,7 @@ local CompletionPreview = {
   ns_id = vim.api.nvim_create_namespace('supermaven'),
   suggestion_group = "Comment",
   disable_inline_completion = false,
+  disable_suggestions = false,
 }
 
 CompletionPreview.__index = CompletionPreview
@@ -13,6 +14,10 @@ function CompletionPreview:render_with_inlay(buffer, prior_delete, completion_te
   self:dispose_inlay()
 
   if not buffer then
+    return
+  end
+
+  if self.disable_suggestions then
     return
   end
 
@@ -173,6 +178,14 @@ function CompletionPreview.has_suggestion()
   local inlay_instance = CompletionPreview:get_inlay_instance()
   return inlay_instance ~= nil and inlay_instance.is_active and inlay_instance.completion_text ~= nil and
       inlay_instance.completion_text ~= ""
+end
+
+function CompletionPreview:on_toggle_suggestions()
+  CompletionPreview:toggle_suggestions()
+end
+
+function CompletionPreview:toggle_suggestions()
+  self.disable_suggestions = not self.disable_suggestions
 end
 
 return CompletionPreview

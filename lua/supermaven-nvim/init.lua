@@ -9,6 +9,10 @@ M = {}
 M.setup = function(args)
   local config_settings = config.setup_config(args)
 
+  if config_settings.suggestions_start_disabled then
+    completion_preview.disable_suggestions = true
+  end
+
   if config_settings.disable_inline_completion then
     completion_preview.disable_inline_completion = true
   elseif not config_settings.disable_keymaps then
@@ -27,6 +31,11 @@ M.setup = function(args)
     if config_settings.keymaps.clear_suggestion ~= nil then
       local clear_suggestion_key = config_settings.keymaps.clear_suggestion
       vim.keymap.set('i', clear_suggestion_key, completion_preview.on_dispose_inlay, { noremap = true, silent = true })
+    end
+
+    if config_settings.keymaps.toggle_suggestions ~= nil then
+      local toggle_suggestions_key = config_settings.keymaps.toggle_suggestions
+      vim.keymap.set('i', toggle_suggestions_key, completion_preview.on_toggle_suggestions, { noremap = true, silent = true })
     end
   end
 

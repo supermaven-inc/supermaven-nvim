@@ -3,8 +3,10 @@ local default_config = {
     accept_suggestion = "<Tab>",
     clear_suggestion = "<C-]>",
     accept_word = "<C-j>",
+    toggle_suggestions = "<C-\\>",
   },
   ignore_filetypes = {},
+  suggestions_start_disabled = false,
   disable_inline_completion = false,
   disable_keymaps = false
 }

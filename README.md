@@ -36,6 +36,8 @@ By default, supermaven-nvim will use the `<Tab>` and `<C-]>` keymaps to accept a
 
 The `ignore_filetypes` table is used to ignore filetypes when using supermaven-nvim. If a filetype is present as a key, and its value is `true`, supermaven-nvim will not display suggestions for that filetype.
 
+It is possible to completely disable the suggestions temporarily, or toggle it on or off. By default the keymap is set to `<C-\\>`. The plugin can also start with suggestions disabled by default using the `suggestions_start_disabled` option.
+
 `suggestion_color` and `cterm` options can be used to set the color of the suggestion text.
 
 ```lua
@@ -44,6 +46,7 @@ require("supermaven-nvim").setup({
     accept_suggestion = "<Tab>",
     clear_suggestion = "<C-]>",
     accept_word = "<C-j>",
+    toggle_suggestions = "<C-\\>",
   },
   ignore_filetypes = { cpp = true },
   color = {
@@ -52,6 +55,7 @@ require("supermaven-nvim").setup({
   },
   disable_inline_completion = false, -- disables inline completion for use with cmp
   disable_keymaps = false -- disables built in keymaps for more manual control
+  suggestions_start_disabled = false -- disables all suggestions by default, must be used with toggle_suggestions
 })
 ```
 
