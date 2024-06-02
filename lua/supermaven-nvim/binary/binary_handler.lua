@@ -61,15 +61,13 @@ function BinaryLifecycle:greeting_message()
 end
 
 function BinaryLifecycle:on_update(buffer, file_name, event_type)
-  for _, filetype in ipairs(self.ignore_filetypes) do
-    if vim.bo.ft == filetype then
-      if self.handle ~= nil then
-        self.handle:close()
-        self.handle = nil
-      end
-      self.wants_polling = false
-      return
+  if vim.tbl_contains(self.ignore_filetypes, vim.bo.ft) or self.ignore_filetypes[vim.bo.ft] then
+    if self.handle ~= nil then
+      self.handle:close()
+      self.handle = nil
     end
+    self.wants_polling = false
+    return
   end
   local buffer_text = u.get_text(buffer)
   local updates = {
@@ -291,15 +289,13 @@ function BinaryLifecycle:provide_inline_completion_items(buffer, cursor, context
 end
 
 function BinaryLifecycle:poll_once()
-  for _, filetype in ipairs(self.ignore_filetypes) do
-    if vim.bo.ft == filetype then
-      if self.handle ~= nil then
-        self.handle:close()
-        self.handle = nil
-      end
-      self.wants_polling = false
-      return
+  if vim.tbl_contains(self.ignore_filetypes, vim.bo.ft) or self.ignore_filetypes[vim.bo.ft] then
+    if self.handle ~= nil then
+      self.handle:close()
+      self.handle = nil
     end
+    self.wants_polling = false
+    return
   end
   local now = vim.loop.now()
   if now - self.last_provide_time > 5 * 1000 then
