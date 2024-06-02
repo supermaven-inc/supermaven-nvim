@@ -3,12 +3,30 @@ local listener = require("supermaven-nvim.document_listener")
 
 local M = {}
 
+M.is_running = function()
+  return binary:is_running()
+end
+
 M.start = function()
   if M.is_running() then
     vim.notify("Supermaven is already running.", vim.log.levels.WARN)
   end
   binary:start_binary()
   listener.setup()
+end
+
+M.stop = function()
+  if not M.is_running() then
+    vim.notify("Supermaven is not running.", vim.log.levels.WARN)
+    return
+  end
+  listener.teardown()
+  binary:stop_binary()
+end
+
+M.restart = function()
+  M.stop()
+  M.start()
 end
 
 M.use_free_version = function()

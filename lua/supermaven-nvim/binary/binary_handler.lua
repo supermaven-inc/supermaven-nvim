@@ -34,7 +34,7 @@ function BinaryLifecycle:start_binary()
   self.last_path = nil
   self.last_context = nil
   self.wants_polling = false
-  self.handle = loop.spawn(binary_path, 
+  self.handle = loop.spawn(binary_path,
     {
       args = {
         "stdio"
@@ -56,6 +56,14 @@ end
 
 function BinaryLifecycle:is_running()
   return self.handle ~= nil and self.handle:is_active()
+end
+
+function BinaryLifecycle:stop_binary()
+  if self:is_running() then
+    self.handle:kill(loop.constants.SIGTERM)
+    self.handle:close()
+    self.handle = nil
+  end
 end
 
 function BinaryLifecycle:greeting_message()
@@ -157,7 +165,7 @@ function BinaryLifecycle:process_line(line)
     line = string.sub(line, 12)
     local message = vim.json.decode(line)
     self:process_message(message)
-  else 
+  else
     print("Unknown message: " .. line)
   end
 end
@@ -230,11 +238,7 @@ function BinaryLifecycle:update_metadata(metadata_message)
 end
 
 function BinaryLifecycle:on_error(err)
-  if self.handle ~= nil then
-    self.handle:kill(loop.constants.SIGTERM)
-    self.handle:close()
-    self.handle = nil
-  end
+  require("supermaven-nvim.api").stop()
   print("Error reading stdout: " .. err)
 end
 
@@ -257,7 +261,7 @@ function BinaryLifecycle:save_state_id(buffer, cursor, file_name)
   if not status then
     return nil
   end
-  
+
   self.state_map[self.current_state_id] = {
     prefix = prefix,
     completion = {},
@@ -383,7 +387,7 @@ function BinaryLifecycle:strip_prefix(completion, original_prefix)
   for _, response_item in ipairs(completion) do
     if response_item.kind == "text" then
       local text = response_item.text
-      if not self:shares_common_prefix(text, prefix) then 
+      if not self:shares_common_prefix(text, prefix) then
         return nil
       end
       local trim_length = math.min(#text, #prefix)

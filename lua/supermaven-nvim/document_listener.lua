@@ -2,10 +2,15 @@ local binary = require("supermaven-nvim.binary.binary_handler")
 local preview = require("supermaven-nvim.completion_preview")
 local config = require("supermaven-nvim.config")
 
-local M = {}
+local M = {
+  augroup = nil,
+}
 
 M.setup = function()
-  vim.api.nvim_create_autocmd({"TextChanged", "TextChangedI"}, {
+  M.augroup = vim.api.nvim_create_augroup("supermaven", { clear = true })
+
+  vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
+    group = M.augroup,
     callback = function(event)
       local file_name = event["file"]
       local buffer = event["buf"]
@@ -13,10 +18,11 @@ M.setup = function()
         return
       end
       binary:on_update(buffer, file_name, "text_changed")
-    end
+    end,
   })
 
-  vim.api.nvim_create_autocmd({"CursorMoved", "CursorMovedI"}, {
+  vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
+    group = M.augroup,
     callback = function(event)
       local file_name = event["file"]
       local buffer = event["buf"]
@@ -24,17 +30,19 @@ M.setup = function()
         return
       end
       binary:on_update(buffer, file_name, "cursor")
-    end
+    end,
   })
 
-  vim.api.nvim_create_autocmd({"InsertLeave"}, {
+  vim.api.nvim_create_autocmd({ "InsertLeave" }, {
+    group = M.augroup,
     callback = function(event)
       preview:dispose_inlay()
-    end
+    end,
   })
 
   if config.color and config.color.suggestion_color and config.color.cterm then
     vim.api.nvim_create_autocmd({ "VimEnter", "ColorScheme" }, {
+      group = M.augroup,
       pattern = "*",
       callback = function(event)
         vim.api.nvim_set_hl(0, "SupermavenSuggestion", {
@@ -47,12 +55,11 @@ M.setup = function()
   end
 end
 
-return M
+M.teardown = function()
+  if M.augroup ~= nil then
+    vim.api.nvim_del_augroup_by_id(M.augroup)
+    M.augroup = nil
   end
-})
+end
 
-vim.api.nvim_create_autocmd({"InsertLeave"}, {
-  callback = function(event)
-    preview:dispose_inlay()
-  end
-})
+return M
