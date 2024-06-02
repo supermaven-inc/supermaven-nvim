@@ -7,38 +7,38 @@ local config = require("supermaven-nvim.config")
 local M = {}
 
 M.setup = function(args)
-  local config_settings = config.setup_config(args)
+  config.setup(args)
 
-  if config_settings.disable_inline_completion then
+  if config.disable_inline_completion then
     completion_preview.disable_inline_completion = true
-  elseif not config_settings.disable_keymaps then
-    if config_settings.keymaps.accept_suggestion ~= nil then
-      local accept_suggestion_key = config_settings.keymaps.accept_suggestion
+  elseif not config.disable_keymaps then
+    if config.keymaps.accept_suggestion ~= nil then
+      local accept_suggestion_key = config.keymaps.accept_suggestion
       vim.keymap.set('i', accept_suggestion_key, completion_preview.on_accept_suggestion,
         { noremap = true, silent = true })
     end
 
-    if config_settings.keymaps.accept_word ~= nil then
-      local accept_word_key = config_settings.keymaps.accept_word
+    if config.keymaps.accept_word ~= nil then
+      local accept_word_key = config.keymaps.accept_word
       vim.keymap.set('i', accept_word_key, completion_preview.on_accept_suggestion_word,
         { noremap = true, silent = true })
     end
 
-    if config_settings.keymaps.clear_suggestion ~= nil then
-      local clear_suggestion_key = config_settings.keymaps.clear_suggestion
+    if config.keymaps.clear_suggestion ~= nil then
+      local clear_suggestion_key = config.keymaps.clear_suggestion
       vim.keymap.set('i', clear_suggestion_key, completion_preview.on_dispose_inlay, { noremap = true, silent = true })
     end
   end
 
-  binary:start_binary(config_settings.ignore_filetypes or {})
+  binary:start_binary()
 
-  if config_settings.color and config_settings.color.suggestion_color and config_settings.color.cterm then
+  if config.color and config.color.suggestion_color and config.color.cterm then
     vim.api.nvim_create_autocmd({ "VimEnter", "ColorScheme" }, {
       pattern = "*",
       callback = function(event)
         vim.api.nvim_set_hl(0, "SupermavenSuggestion", {
-          fg = config_settings.color.suggestion_color,
-          ctermfg = config_settings.color.cterm,
+          fg = config.color.suggestion_color,
+          ctermfg = config.color.cterm,
         })
         completion_preview.suggestion_group = "SupermavenSuggestion"
       end
@@ -50,7 +50,7 @@ M.setup = function(args)
     local cmp_source = require("supermaven-nvim.cmp")
     cmp.register_source("supermaven", cmp_source.new())
   else
-    if config_settings.disable_inline_completion then
+    if config.disable_inline_completion then
       vim.notify(
         "nvim-cmp is not available, but inline completion is disabled. Supermaven nvim-cmp source will not be registered.",
         vim.log.levels.WARN)

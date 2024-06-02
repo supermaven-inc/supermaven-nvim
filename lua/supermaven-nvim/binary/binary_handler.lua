@@ -2,6 +2,7 @@ local loop = vim.loop
 local api = vim.api
 local u = require("supermaven-nvim.util")
 local textual = require("supermaven-nvim.textual")
+local config = require("supermaven-nvim.config")
 local preview = require("supermaven-nvim.completion_preview")
 local binary_fetcher = require("supermaven-nvim.binary.binary_fetcher")
 
@@ -15,7 +16,6 @@ local BinaryLifecycle = {
   buffer = nil,
   cursor = nil,
   max_state_id_retention = 50,
-  ignore_filetypes = {},
   service_message_displayed = false,
 }
 
@@ -26,8 +26,7 @@ timer:start(0, 25, vim.schedule_wrap(function()
   end
 end))
 
-function BinaryLifecycle:start_binary(ignore_filetypes)
-  self.ignore_filetypes = ignore_filetypes
+function BinaryLifecycle:start_binary()
   self.stdin = loop.new_pipe(false)
   self.stdout = loop.new_pipe(false)
   self.stderr = loop.new_pipe(false)
@@ -110,7 +109,7 @@ function BinaryLifecycle:check_process()
     self.handle:close()
   end
 
-  self:start_binary(self.ignore_filetypes)
+  self:start_binary()
 end
 
 function BinaryLifecycle:same_context(context)
@@ -286,7 +285,7 @@ function BinaryLifecycle:poll_once()
     self.wants_polling = false
     return
   end
-  if self.ignore_filetypes[vim.bo.filetype] then
+  if config.ignore_filetypes[vim.bo.filetype] then
     return
   end
   self.wants_polling = true
