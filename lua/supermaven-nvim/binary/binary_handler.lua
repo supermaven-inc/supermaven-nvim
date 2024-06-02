@@ -54,6 +54,10 @@ function BinaryLifecycle:start_binary()
   self:greeting_message()
 end
 
+function BinaryLifecycle:is_running()
+  return self.handle ~= nil and self.handle:is_active()
+end
+
 function BinaryLifecycle:greeting_message()
   local message = vim.json.encode({ kind = "greeting", allowGitignore = false }) .. "\n"
   loop.write(self.stdin, message) -- fails silently
@@ -424,17 +428,6 @@ function BinaryLifecycle:show_activation_message()
   end
 end
 
-vim.api.nvim_create_user_command("SupermavenUseFree", function()
-  BinaryLifecycle:use_free_version()
-end, {})
-
-vim.api.nvim_create_user_command("SupermavenLogout", function()
-  BinaryLifecycle:logout()
-end, {})
-
-vim.api.nvim_create_user_command("SupermavenUsePro", function()
-  BinaryLifecycle:use_pro()
-end, {})
 
 function BinaryLifecycle:use_free_version()
   local message = vim.json.encode({ kind = "use_free_version" }) .. "\n"

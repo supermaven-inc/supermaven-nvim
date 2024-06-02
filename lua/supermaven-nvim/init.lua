@@ -1,7 +1,7 @@
-local binary = require("supermaven-nvim.binary.binary_handler")
 local completion_preview = require("supermaven-nvim.completion_preview")
-local listener = require("supermaven-nvim.document_listener")
 local config = require("supermaven-nvim.config")
+local commands = require("supermaven-nvim.commands")
+local api = require("supermaven-nvim.api")
 
 local M = {}
 
@@ -29,20 +29,7 @@ M.setup = function(args)
     end
   end
 
-  binary:start_binary()
-
-  if config.color and config.color.suggestion_color and config.color.cterm then
-    vim.api.nvim_create_autocmd({ "VimEnter", "ColorScheme" }, {
-      pattern = "*",
-      callback = function(event)
-        vim.api.nvim_set_hl(0, "SupermavenSuggestion", {
-          fg = config.color.suggestion_color,
-          ctermfg = config.color.cterm,
-        })
-        completion_preview.suggestion_group = "SupermavenSuggestion"
-      end
-    })
-  end
+  commands.setup()
 
   local cmp_ok, cmp = pcall(require, "cmp")
   if cmp_ok then
@@ -55,6 +42,8 @@ M.setup = function(args)
         vim.log.levels.WARN)
     end
   end
+
+  api.start()
 end
 
 return M
