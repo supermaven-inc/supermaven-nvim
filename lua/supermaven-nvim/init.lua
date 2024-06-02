@@ -1,6 +1,5 @@
 local binary = require("supermaven-nvim.binary.binary_handler")
 local completion_preview = require("supermaven-nvim.completion_preview")
-local u = require("supermaven-nvim.util")
 local listener = require("supermaven-nvim.document_listener")
 local config = require("supermaven-nvim.config")
 
