@@ -33,12 +33,12 @@ M.use_free_version = function()
   binary:use_free_version()
 end
 
-M.logout = function()
-  binary:logout()
-end
-
 M.use_pro = function()
   binary:use_pro()
+end
+
+M.logout = function()
+  binary:logout()
 end
 
 return M
