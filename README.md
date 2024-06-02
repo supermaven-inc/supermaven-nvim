@@ -133,3 +133,33 @@ end
 Upon starting supermaven-nvim, you will be prompted to either use the Free Tier with the command `:SupermavenUseFree` or to activate a Supermaven Pro subscription by following a link, which will connect your Supermaven account.
 
 If Supermaven is set up, you can use `:SupermavenLogout` to switch versions.
+
+### Commands
+
+Supermaven-nvim provides the following commands:
+
+```
+:SupermavenStart   start supermaven-nvim
+:SupermavenStop    stop supermaven-nvim
+:SupermavenRestart restart supermaven-nvim
+:SupermavenStatus  show status of supermaven-nvim
+:SupermavenUseFree switch to the free version
+:SupermavenUsePro  switch to the pro version
+:SupermavenLogout  log out of supermaven
+```
+
+### Lua API
+
+The `supermaven-nvim.api` module provides the following functions for interacting with supermaven-nvim from Lua:
+
+```lua
+local api = require("supermaven-nvim.api")
+
+api.start() -- starts supermaven-nvim
+api.stop() -- stops supermaven-nvim
+api.restart() -- restarts supermaven-nvim if it is running, otherwise starts it
+api.is_running() -- returns true if supermaven-nvim is running
+api.use_free_version() -- switch to the free version
+api.use_pro() -- switch to the pro version
+api.logout() -- log out of supermaven
+```
