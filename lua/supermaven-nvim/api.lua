@@ -25,7 +25,9 @@ M.stop = function()
 end
 
 M.restart = function()
-  M.stop()
+  if M.is_running() then
+    M.stop()
+  end
   M.start()
 end
 
