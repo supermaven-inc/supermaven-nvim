@@ -31,6 +31,14 @@ M.restart = function()
   M.start()
 end
 
+M.toggle = function()
+  if M.is_running() then
+    M.stop()
+  else
+    M.start()
+  end
+end
+
 M.use_free_version = function()
   binary:use_free_version()
 end

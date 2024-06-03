@@ -142,6 +142,7 @@ Supermaven-nvim provides the following commands:
 :SupermavenStart   start supermaven-nvim
 :SupermavenStop    stop supermaven-nvim
 :SupermavenRestart restart supermaven-nvim
+:SupermavenToggle  toggle supermaven-nvim
 :SupermavenStatus  show status of supermaven-nvim
 :SupermavenUseFree switch to the free version
 :SupermavenUsePro  switch to the pro version
@@ -158,6 +159,7 @@ local api = require("supermaven-nvim.api")
 api.start() -- starts supermaven-nvim
 api.stop() -- stops supermaven-nvim
 api.restart() -- restarts supermaven-nvim if it is running, otherwise starts it
+api.toggle() -- toggles supermaven-nvim
 api.is_running() -- returns true if supermaven-nvim is running
 api.use_free_version() -- switch to the free version
 api.use_pro() -- switch to the pro version

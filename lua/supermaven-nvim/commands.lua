@@ -15,6 +15,10 @@ M.setup = function()
     api.restart()
   end, {})
 
+  vim.api.nvim_create_user_command("SupermavenToggle", function()
+    api.toggle()
+  end, {})
+
   vim.api.nvim_create_user_command("SupermavenStatus", function()
     vim.notify(string.format("Supermaven is %s", api.is_running() and "running" or "not running"))
   end, {})
