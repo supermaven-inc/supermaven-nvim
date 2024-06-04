@@ -104,11 +104,11 @@ function BinaryFetcher:fetch_binary()
       "'" .. local_binary_path .. "'",
     })
   else
-    response = vim.fn.system({ "curl", "-o", local_binary_path, url })
+    response = vim.fn.system({ "curl", "-o", temp_path, url })
   end
   if vim.v.shell_error == 0 then
     if platform ~= "windows" then
-      vim.fn.system({"mv", temp_path, local_binary_path})
+      vim.fn.system({ "mv", temp_path, local_binary_path })
     end
     print("Downloaded binary sm-agent to " .. local_binary_path)
   else
