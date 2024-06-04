@@ -2,7 +2,7 @@ local BinaryFetcher = {
   binary_path = nil,
   binary_url = nil,
   os_uname = vim.loop.os_uname(),
-  homedir = vim.loop.os_homedir()
+  homedir = vim.loop.os_homedir(),
 }
 
 function BinaryFetcher:platform()
@@ -23,7 +23,7 @@ function BinaryFetcher:get_arch()
   elseif self.os_uname.machine == "x86_64" then
     return "x86_64"
   end
-    return ""
+  return ""
 end
 
 function BinaryFetcher:discover_binary_url()
@@ -32,21 +32,21 @@ function BinaryFetcher:discover_binary_url()
   local url = "https://supermaven.com/api/download-path?platform=" .. platform .. "&arch=" .. arch .. "&editor=neovim"
   local response = ""
   if platform == "windows" then
-    response = vim.fn.system {
-      'powershell',
-      '-Command',
-      'Invoke-WebRequest',
-      '-Uri',
+    response = vim.fn.system({
+      "powershell",
+      "-Command",
+      "Invoke-WebRequest",
+      "-Uri",
       "'" .. url .. "'",
-      '-UseBasicParsing',
-      '|',
-      'Select-Object',
-      '-ExpandProperty',
-      'Content'
-    }
+      "-UseBasicParsing",
+      "|",
+      "Select-Object",
+      "-ExpandProperty",
+      "Content",
+    })
     response = string.gsub(response, "[\r\n]+", "")
   else
-    response = vim.fn.system({"curl", "-s", url})
+    response = vim.fn.system({ "curl", "-s", url })
   end
 
   local json = vim.fn.json_decode(response)
@@ -80,17 +80,17 @@ function BinaryFetcher:fetch_binary()
   local platform = self:platform()
   local response = ""
   if platform == "windows" then
-    response = vim.fn.system {
-      'powershell',
-      '-Command',
-      'Invoke-WebRequest',
-      '-Uri',
+    response = vim.fn.system({
+      "powershell",
+      "-Command",
+      "Invoke-WebRequest",
+      "-Uri",
       "'" .. url .. "'",
-      '-OutFile',
-      "'" .. local_binary_path .. "'"
-    }
+      "-OutFile",
+      "'" .. local_binary_path .. "'",
+    })
   else
-    response = vim.fn.system({"curl", "-o", local_binary_path, url})
+    response = vim.fn.system({ "curl", "-o", local_binary_path, url })
   end
   if vim.v.shell_error == 0 then
     print("Downloaded binary sm-agent to " .. local_binary_path)
@@ -114,6 +114,5 @@ function BinaryFetcher:local_binary_parent_path()
   local home_dir = self.homedir
   return home_dir .. "/.supermaven/binary/v15/" .. self:platform() .. "-" .. self:get_arch()
 end
-
 
 return BinaryFetcher
