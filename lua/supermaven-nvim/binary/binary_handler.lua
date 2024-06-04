@@ -72,7 +72,7 @@ function BinaryLifecycle:greeting_message()
 end
 
 function BinaryLifecycle:on_update(buffer, file_name, event_type)
-  if vim.tbl_contains(self.ignore_filetypes, vim.bo.ft) or self.ignore_filetypes[vim.bo.ft] then
+  if vim.tbl_contains(config.ignore_filetypes, vim.bo.ft) or config.ignore_filetypes[vim.bo.ft] then
     if self.handle ~= nil then
       self.handle:close()
       self.handle = nil
@@ -290,7 +290,7 @@ function BinaryLifecycle:provide_inline_completion_items(buffer, cursor, context
 end
 
 function BinaryLifecycle:poll_once()
-  if vim.tbl_contains(self.ignore_filetypes, vim.bo.ft) or self.ignore_filetypes[vim.bo.ft] then
+  if vim.tbl_contains(config.ignore_filetypes, vim.bo.ft) or config.ignore_filetypes[vim.bo.ft] then
     if self.handle ~= nil then
       self.handle:close()
       self.handle = nil
@@ -298,6 +298,7 @@ function BinaryLifecycle:poll_once()
     self.wants_polling = false
     return
   end
+  local now = vim.loop.now()
   if now - self.last_provide_time > 5 * 1000 then
     self.wants_polling = false
     return
