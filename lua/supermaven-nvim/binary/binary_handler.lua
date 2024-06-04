@@ -287,7 +287,7 @@ function BinaryLifecycle:poll_once()
     self.wants_polling = false
     return
   end
-  if config.ignore_filetypes[vim.bo.filetype] then
+  if vim.tbl_contains(config.ignore_filetypes, vim.bo.filetype) then
     return
   end
   self.wants_polling = true
