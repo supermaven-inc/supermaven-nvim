@@ -47,7 +47,7 @@ function BinaryFetcher:discover_binary_url()
     }
     response = string.gsub(response, "[\r\n]+", "")
   else
-    response = vim.fn.system("curl -s " .. "'" .. url .. "'")
+    response = vim.fn.system({"curl", "-s", url})
   end
 
   local json = vim.fn.json_decode(response)
@@ -91,7 +91,7 @@ function BinaryFetcher:fetch_binary()
       "'" .. local_binary_path .. "'"
     }
   else
-    response = vim.fn.system("curl -o " .. local_binary_path .. " " .. "'" .. url .. "'")
+    response = vim.fn.system({"curl", "-o", local_binary_path, url})
   end
   if vim.v.shell_error == 0 then
     log:info("Downloaded binary sm-agent to " .. local_binary_path)
