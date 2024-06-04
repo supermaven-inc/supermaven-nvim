@@ -1,4 +1,4 @@
-M = {}
+local M = {}
 
 function M.print(msg)
   vim.api.nvim_out_write(msg .. "\n")
@@ -56,9 +56,9 @@ end
 function M.removeAfterNewline(str)
   local newlinePos = string.find(str, "\n")
   if newlinePos then
-      return string.sub(str, 1, newlinePos - 1)
+    return string.sub(str, 1, newlinePos - 1)
   else
-      return str
+    return str
   end
 end
 
@@ -93,18 +93,18 @@ function M.get_home_directory()
 end
 
 function M.get_cursor_prefix(bufnr, cursor)
-    if not vim.api.nvim_buf_is_valid(bufnr) then
-        return ""
-    end
+  if not vim.api.nvim_buf_is_valid(bufnr) then
+    return ""
+  end
 
-    local prefix = vim.api.nvim_buf_get_text(bufnr, 0, 0, cursor[1] - 1, cursor[2], {})
-    local text = table.concat(prefix, "\n")
-    return text
+  local prefix = vim.api.nvim_buf_get_text(bufnr, 0, 0, cursor[1] - 1, cursor[2], {})
+  local text = table.concat(prefix, "\n")
+  return text
 end
 
 function M.get_cursor_suffix(bufnr, cursor)
   if not vim.api.nvim_buf_is_valid(bufnr) then
-        return ""
+    return ""
   end
 
   local suffix = vim.api.nvim_buf_get_text(bufnr, cursor[1], cursor[2], -1, -1, {})
