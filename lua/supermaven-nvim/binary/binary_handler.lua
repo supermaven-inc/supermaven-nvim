@@ -73,11 +73,6 @@ end
 
 function BinaryLifecycle:on_update(buffer, file_name, event_type)
   if config.ignore_filetypes[vim.bo.ft] then
-    if self.handle ~= nil then
-      self.handle:close()
-      self.handle = nil
-    end
-    self.wants_polling = false
     return
   end
   local buffer_text = u.get_text(buffer)
@@ -291,11 +286,6 @@ end
 
 function BinaryLifecycle:poll_once()
   if config.ignore_filetypes[vim.bo.ft] then
-    if self.handle ~= nil then
-      self.handle:close()
-      self.handle = nil
-    end
-    self.wants_polling = false
     return
   end
   local now = vim.loop.now()
