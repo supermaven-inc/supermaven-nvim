@@ -1,5 +1,8 @@
 local binary = require("supermaven-nvim.binary.binary_handler")
 local listener = require("supermaven-nvim.document_listener")
+local log = require("supermaven-nvim.logger")
+
+local log_path = log:get_log_path()
 
 local M = {}
 
@@ -49,6 +52,22 @@ end
 
 M.logout = function()
   binary:logout()
+end
+
+M.show_log = function()
+    if log_path ~= nil then
+      vim.cmd(string.format(":e %s", log_path))
+    else
+      log:warn("No log file found to show!")
+    end
+end
+
+M.clear_log = function()
+    if log_path ~= nil then
+      vim.loop.fs_unlink(log_path)
+      else
+        log:warn("No log file found to remove!")
+    end
 end
 
 return M

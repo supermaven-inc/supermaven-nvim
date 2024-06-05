@@ -40,24 +40,6 @@ M.setup = function(args)
 
   commands.setup()
 
-	vim.api.nvim_create_user_command("SupermavenShowLog", function()
-    local log_path = require("supermaven-nvim.logger"):get_log_path()
-    if log_path ~= nil then
-      vim.cmd(string.format(":e %s", log_path))
-    else
-      log:warn("No log file found to show!")
-    end
-	end, {})
-
-  vim.api.nvim_create_user_command("SupermavenClearLog", function()
-    local log_path = require("supermaven-nvim.logger"):get_log_path()
-    if log_path ~= nil then
-      vim.loop.fs_unlink(log_path)
-      else
-        log:warn("No log file found to remove!")
-    end
-  end, {})
-
   local cmp_ok, cmp = pcall(require, "cmp")
   if cmp_ok then
     local cmp_source = require("supermaven-nvim.cmp")

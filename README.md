@@ -171,4 +171,6 @@ api.is_running() -- returns true if supermaven-nvim is running
 api.use_free_version() -- switch to the free version
 api.use_pro() -- switch to the pro version
 api.logout() -- log out of supermaven
+api.show_log() -- show logs for supermaven-nvim
+api.clear_log() -- clear logs for supermaven-nvim
 ```

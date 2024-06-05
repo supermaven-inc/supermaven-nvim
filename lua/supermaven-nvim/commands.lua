@@ -34,6 +34,14 @@ M.setup = function()
   vim.api.nvim_create_user_command("SupermavenLogout", function()
     api.logout()
   end, {})
+
+	vim.api.nvim_create_user_command("SupermavenShowLog", function()
+    api.show_log()
+	end, {})
+
+  vim.api.nvim_create_user_command("SupermavenClearLog", function()
+    api.clear_log()
+  end, {})
 end
 
 return M
