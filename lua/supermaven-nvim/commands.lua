@@ -5,10 +5,12 @@ local M = {}
 M.setup = function()
   vim.api.nvim_create_user_command("SupermavenStart", function()
     api.start()
+    vim.notify("Supermaven ON")
   end, {})
 
   vim.api.nvim_create_user_command("SupermavenStop", function()
     api.stop()
+    vim.notify("Supermaven OFF")
   end, {})
 
   vim.api.nvim_create_user_command("SupermavenRestart", function()
