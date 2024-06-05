@@ -56,6 +56,7 @@ end
 
 M.show_log = function()
     if log_path ~= nil then
+      vim.cmd.tabnew()
       vim.cmd(string.format(":e %s", log_path))
     else
       log:warn("No log file found to show!")
