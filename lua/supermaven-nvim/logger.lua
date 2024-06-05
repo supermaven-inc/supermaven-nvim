@@ -9,6 +9,9 @@ local log = {}
 local join_path = function(...)
 	local is_windows = vim.loop.os_uname().version:match("Windows") -- could be "Windows" or "Windows_NT"
 	local path_sep = is_windows and "\\" or "/"
+  if vim.version().minor >= 10 then
+    return table.concat(vim.iter({ ... }):flatten():totable(), path_sep):gsub(path_sep .. "+", path_sep)
+  end
 	return table.concat(vim.tbl_flatten({ ... }), path_sep):gsub(path_sep .. "+", path_sep)
 end
 
@@ -19,9 +22,9 @@ local create_log_file = function()
 		return
 	end
 	log_path = join_path(vim.fn.stdpath("cache"), "supermaven-nvim.log")
-	local file = io.open(log_path, "a")
+	local file = io.open(log_path, "w")
 	if file == nil then
-		vim.api.nvim_err_writeln("Failed to create log file: " .. log_path)
+		error("Failed to create log file: " .. log_path)
 		return
 	end
 	file:close()
@@ -33,18 +36,12 @@ end
 function log:write_log_file(level, msg)
 	local log_path = log:get_log_path()
 	if log_path == nil then
-    -- TODO: create log file
-    log_path = join_path(vim.fn.stdpath("cache"), "supermaven-nvim.log")
-    local file = io.open(log_path, "a")
-    if file == nil then
-      self:error("Failed to create log file: " .. log_path)
-      return
-    end
-    file:close()
+    create_log_file()
+    return
 	end
 	local file = io.open(log_path, "a")
 	if file == nil then
-		self:error("Failed to open log file: " .. log_path)
+		vim.api.nvim_err_writeln("Failed to open log file: " .. log_path)
 		return
 	end
 	file:write(string.format("[%-6s %s] %s\n", level:upper(), os.date(), msg))
