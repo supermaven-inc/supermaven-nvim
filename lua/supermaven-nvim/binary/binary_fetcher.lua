@@ -92,9 +92,9 @@ function BinaryFetcher:fetch_binary()
   local temp_path = generate_temp_path(10)
 
   local platform = self:platform()
-  local response = ""
+  local _response = ""
   if platform == "windows" then
-    response = vim.fn.system({
+    _response = vim.fn.system({
       "powershell",
       "-Command",
       "Invoke-WebRequest",
@@ -104,7 +104,7 @@ function BinaryFetcher:fetch_binary()
       "'" .. local_binary_path .. "'",
     })
   else
-    response = vim.fn.system({ "curl", "-o", temp_path, url })
+    _response = vim.fn.system({ "curl", "-o", temp_path, url })
   end
   if vim.v.shell_error == 0 then
     if platform ~= "windows" then

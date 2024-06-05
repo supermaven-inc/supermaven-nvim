@@ -1,7 +1,7 @@
+local api = require("supermaven-nvim.api")
+local commands = require("supermaven-nvim.commands")
 local completion_preview = require("supermaven-nvim.completion_preview")
 local config = require("supermaven-nvim.config")
-local commands = require("supermaven-nvim.commands")
-local api = require("supermaven-nvim.api")
 
 local M = {}
 

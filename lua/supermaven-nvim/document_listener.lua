@@ -1,6 +1,6 @@
 local binary = require("supermaven-nvim.binary.binary_handler")
-local preview = require("supermaven-nvim.completion_preview")
 local config = require("supermaven-nvim.config")
+local preview = require("supermaven-nvim.completion_preview")
 
 local M = {
   augroup = nil,
@@ -35,7 +35,7 @@ M.setup = function()
 
   vim.api.nvim_create_autocmd({ "InsertLeave" }, {
     group = M.augroup,
-    callback = function(event)
+    callback = function(_event)
       preview:dispose_inlay()
     end,
   })
@@ -44,7 +44,7 @@ M.setup = function()
     vim.api.nvim_create_autocmd({ "VimEnter", "ColorScheme" }, {
       group = M.augroup,
       pattern = "*",
-      callback = function(event)
+      callback = function(_event)
         vim.api.nvim_set_hl(0, "SupermavenSuggestion", {
           fg = config.color.suggestion_color,
           ctermfg = config.color.cterm,
