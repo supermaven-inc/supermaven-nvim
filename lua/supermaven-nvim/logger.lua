@@ -33,11 +33,18 @@ end
 function log:write_log_file(level, msg)
 	local log_path = log:get_log_path()
 	if log_path == nil then
-		return
+    -- TODO: create log file
+    log_path = join_path(vim.fn.stdpath("cache"), "supermaven-nvim.log")
+    local file = io.open(log_path, "a")
+    if file == nil then
+      self:error("Failed to create log file: " .. log_path)
+      return
+    end
+    file:close()
 	end
 	local file = io.open(log_path, "a")
 	if file == nil then
-		vim.api.nvim_err_writeln("Failed to open log file: " .. log_path)
+		self:error("Failed to open log file: " .. log_path)
 		return
 	end
 	file:write(string.format("[%-6s %s] %s\n", level:upper(), os.date(), msg))
@@ -48,7 +55,7 @@ end
 ---@param level LogLevel: The log level
 ---@param msg string: The log message
 function log:add_entry(level, msg)
-	local conf = c.get_config()
+	local conf = c.config
 	if self.__log_file == nil then
 		self.__log_file = create_log_file()
 	end
