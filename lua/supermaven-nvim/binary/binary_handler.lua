@@ -1,9 +1,10 @@
 local loop = vim.loop
 local api = vim.api
-local binary_fetcher = require("supermaven-nvim.binary.binary_fetcher")
-local preview = require("supermaven-nvim.completion_preview")
-local textual = require("supermaven-nvim.textual")
 local u = require("supermaven-nvim.util")
+local textual = require("supermaven-nvim.textual")
+local config = require("supermaven-nvim.config")
+local preview = require("supermaven-nvim.completion_preview")
+local binary_fetcher = require("supermaven-nvim.binary.binary_fetcher")
 
 local binary_path = binary_fetcher:fetch_binary()
 
@@ -14,7 +15,6 @@ local BinaryLifecycle = {
   buffer = nil,
   cursor = nil,
   max_state_id_retention = 50,
-  ignore_filetypes = {},
   service_message_displayed = false,
 }
 
@@ -29,11 +29,7 @@ timer:start(
   end)
 )
 
-function BinaryLifecycle:start_binary(ignore_filetypes)
-  if binary_path == nil then
-    return
-  end
-  self.ignore_filetypes = ignore_filetypes
+function BinaryLifecycle:start_binary()
   self.stdin = loop.new_pipe(false)
   self.stdout = loop.new_pipe(false)
   self.stderr = loop.new_pipe(false)
@@ -46,7 +42,7 @@ function BinaryLifecycle:start_binary(ignore_filetypes)
       "stdio",
     },
     stdio = { self.stdin, self.stdout, self.stderr },
-  }, function(code, _signal)
+  }, function(code, signal)
     print("sm-agent exited with code " .. code)
     self.handle:close()
     self.handle = nil
@@ -58,12 +54,24 @@ function BinaryLifecycle:start_binary(ignore_filetypes)
   self:greeting_message()
 end
 
+function BinaryLifecycle:is_running()
+  return self.handle ~= nil and self.handle:is_active()
+end
+
+function BinaryLifecycle:stop_binary()
+  if self:is_running() then
+    self.handle:kill(loop.constants.SIGTERM)
+    self.handle:close()
+    self.handle = nil
+  end
+end
+
 function BinaryLifecycle:greeting_message()
   local message = vim.json.encode({ kind = "greeting", allowGitignore = false }) .. "\n"
   loop.write(self.stdin, message) -- fails silently
 end
 
-function BinaryLifecycle:on_update(buffer, file_name, _event_type)
+function BinaryLifecycle:on_update(buffer, file_name, event_type)
   local buffer_text = u.get_text(buffer)
   local updates = {
     {
@@ -113,7 +121,7 @@ function BinaryLifecycle:check_process()
     self.handle:close()
   end
 
-  self:start_binary(self.ignore_filetypes)
+  self:start_binary()
 end
 
 function BinaryLifecycle:same_context(context)
@@ -224,11 +232,7 @@ function BinaryLifecycle:update_metadata(metadata_message)
 end
 
 function BinaryLifecycle:on_error(err)
-  if self.handle ~= nil then
-    self.handle:kill(loop.constants.SIGTERM)
-    self.handle:close()
-    self.handle = nil
-  end
+  require("supermaven-nvim.api").stop()
   print("Error reading stdout: " .. err)
 end
 
@@ -243,7 +247,7 @@ function BinaryLifecycle:send_message(updates)
   loop.write(self.stdin, message) -- fails silently
 end
 
-function BinaryLifecycle:save_state_id(buffer, cursor, _file_name)
+function BinaryLifecycle:save_state_id(buffer, cursor, file_name)
   self.current_state_id = self.current_state_id + 1
   self:purge_old_states()
 
@@ -283,7 +287,7 @@ function BinaryLifecycle:poll_once()
     self.wants_polling = false
     return
   end
-  if self.ignore_filetypes[vim.bo.filetype] then
+  if config.ignore_filetypes[vim.bo.filetype] then
     return
   end
   self.wants_polling = true
@@ -424,18 +428,6 @@ function BinaryLifecycle:show_activation_message()
   end
 end
 
-vim.api.nvim_create_user_command("SupermavenUseFree", function()
-  BinaryLifecycle:use_free_version()
-end, {})
-
-vim.api.nvim_create_user_command("SupermavenLogout", function()
-  BinaryLifecycle:logout()
-end, {})
-
-vim.api.nvim_create_user_command("SupermavenUsePro", function()
-  BinaryLifecycle:use_pro()
-end, {})
-
 function BinaryLifecycle:use_free_version()
   local message = vim.json.encode({ kind = "use_free_version" }) .. "\n"
   loop.write(self.stdin, message) -- fails silently
@@ -469,8 +461,15 @@ function BinaryLifecycle:open_popup(message, include_free)
   end
   local buf = vim.api.nvim_create_buf(false, true)
 
-  local width = vim.api.nvim_get_option("columns")
-  local height = vim.api.nvim_get_option("lines")
+  local width = 0
+  local height = 0
+  if vim.version().minor >= 10 then
+    width = vim.api.nvim_get_option_value("columns", { scope = "local" })
+    height = vim.api.nvim_get_option_value("lines", { scope = "local" })
+  else
+    width = vim.api.nvim_get_option("columns")
+    height = vim.api.nvim_get_option("lines")
+  end
 
   local intro_message = "Please visit the following Url to set up Supermaven Pro"
   if include_free then
@@ -495,8 +494,13 @@ function BinaryLifecycle:open_popup(message, include_free)
 
   local win = vim.api.nvim_open_win(buf, true, opts)
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, { intro_message, "", message .. " " })
-  vim.api.nvim_win_set_option(win, "winhl", "Normal:Normal")
-  vim.api.nvim_win_set_option(win, "wrap", true)
+  if vim.version().minor >= 10 then
+    vim.api.nvim_set_option_value("winhl", "Normal:Normal", { scope = "local", win = win })
+    vim.api.nvim_set_option_value("wrap", true, { scope = "local", win = win })
+  else
+    vim.api.nvim_win_set_option(win, "winhl", "Normal:Normal")
+    vim.api.nvim_win_set_option(win, "wrap", true)
+  end
 
   self.win = win
 end

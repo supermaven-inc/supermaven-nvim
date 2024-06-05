@@ -1,5 +1,4 @@
 local CompletionPreview = require("supermaven-nvim.completion_preview")
--- local u = require("supermaven-nvim.util")
 
 local source = { executions = {} }
 

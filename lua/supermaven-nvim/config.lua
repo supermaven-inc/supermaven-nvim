@@ -9,11 +9,19 @@ local default_config = {
   disable_keymaps = false,
 }
 
-local M = {}
+local M = {
+  config = vim.deepcopy(default_config),
+}
 
-M.setup_config = function(args)
-  local config = vim.tbl_deep_extend("force", default_config, args)
-  return config
+M.setup = function(args)
+  M.config = vim.tbl_deep_extend("force", vim.deepcopy(default_config), args)
 end
 
-return M
+return setmetatable(M, {
+  __index = function(_, key)
+    if key == "setup" then
+      return M.setup
+    end
+    return rawget(M.config, key)
+  end,
+})
