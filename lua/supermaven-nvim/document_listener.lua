@@ -64,7 +64,7 @@ M.setup = function()
       pattern = "*",
       callback = function(_)
         vim.api.nvim_set_hl(0, "SupermavenSuggestion", {
-          link = preview.suggestion_group,
+          link = "Comment",
         })
         preview.suggestion_group = "SupermavenSuggestion"
       end,
