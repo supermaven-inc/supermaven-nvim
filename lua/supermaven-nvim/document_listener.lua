@@ -40,14 +40,31 @@ M.setup = function()
     end,
   })
 
-  if config.color and config.color.suggestion_color and config.color.cterm then
+  if config.color then
     vim.api.nvim_create_autocmd({ "VimEnter", "ColorScheme" }, {
       group = M.augroup,
       pattern = "*",
       callback = function(event)
+        if config.color.suggestion_group then
+          vim.api.nvim_set_hl(0, "SupermavenSuggestion", {
+            link = config.color.suggestion_group,
+          })
+        elseif config.color.suggestion_color and config.color.cterm then
+          vim.api.nvim_set_hl(0, "SupermavenSuggestion", {
+            fg = config.color.suggestion_color,
+            ctermfg = config.color.cterm,
+          })
+        end
+        preview.suggestion_group = "SupermavenSuggestion"
+      end,
+    })
+  else
+    vim.api.nvim_create_autocmd({ "VimEnter", "ColorScheme" }, {
+      group = M.augroup,
+      pattern = "*",
+      callback = function(_)
         vim.api.nvim_set_hl(0, "SupermavenSuggestion", {
-          fg = config.color.suggestion_color,
-          ctermfg = config.color.cterm,
+          link = preview.suggestion_group,
         })
         preview.suggestion_group = "SupermavenSuggestion"
       end,

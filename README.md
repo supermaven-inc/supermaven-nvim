@@ -38,6 +38,8 @@ The `ignore_filetypes` table is used to ignore filetypes when using supermaven-n
 
 `suggestion_color` and `cterm` options can be used to set the color of the suggestion text.
 
+`suggestion_group` is used to set the highlight group for the suggestion text. If `suggestion_group` is set, it will override `suggestion_color` and `cterm` values.
+
 ```lua
 require("supermaven-nvim").setup({
   keymaps = {
@@ -49,6 +51,7 @@ require("supermaven-nvim").setup({
   color = {
     suggestion_color = "#ffffff",
     cterm = 244,
+    suggestion_group = "Comment", -- if `suggestion_group` is set, it will override `suggestion_color` and `cterm`
   },
   disable_inline_completion = false, -- disables inline completion for use with cmp
   disable_keymaps = false -- disables built in keymaps for more manual control
