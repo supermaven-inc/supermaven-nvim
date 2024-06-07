@@ -9,7 +9,7 @@ end
 local CompletionPreview = {
   inlay_instance = nil,
   ns_id = vim.api.nvim_create_namespace("supermaven"),
-  suggestion_group,
+  suggestion_group = suggestion_group,
   disable_inline_completion = false,
 }
 

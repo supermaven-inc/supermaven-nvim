@@ -58,17 +58,6 @@ M.setup = function()
         preview.suggestion_group = "SupermavenSuggestion"
       end,
     })
-  else
-    vim.api.nvim_create_autocmd({ "VimEnter", "ColorScheme" }, {
-      group = M.augroup,
-      pattern = "*",
-      callback = function(_)
-        vim.api.nvim_set_hl(0, "SupermavenSuggestion", {
-          link = "Comment",
-        })
-        preview.suggestion_group = "SupermavenSuggestion"
-      end,
-    })
   end
 end
 
