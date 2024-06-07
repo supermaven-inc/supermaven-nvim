@@ -189,4 +189,12 @@ function M.to_next_word(str)
   return str
 end
 
+function M.to_next_line(str)
+  local match = str:match("^.-\n")
+  if match ~= nil then
+    return match
+  end
+  return str
+end
+
 return M

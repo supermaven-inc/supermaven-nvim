@@ -31,6 +31,16 @@ M.setup = function(args)
       )
     end
 
+    if config.keymaps.accept_line ~= nil then
+      local accept_line_key = config.keymaps.accept_line
+      vim.keymap.set(
+        "i",
+        accept_line_key,
+        completion_preview.on_accept_suggestion_line,
+        { noremap = true, silent = true }
+      )
+    end
+
     if config.keymaps.clear_suggestion ~= nil then
       local clear_suggestion_key = config.keymaps.clear_suggestion
       vim.keymap.set("i", clear_suggestion_key, completion_preview.on_dispose_inlay, { noremap = true, silent = true })

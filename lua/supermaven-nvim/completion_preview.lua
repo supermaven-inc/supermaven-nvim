@@ -111,7 +111,12 @@ function CompletionPreview:accept_completion_text(is_partial)
 
   if completion_text ~= nil then
     if is_partial then
-      completion_text = u.to_next_word(completion_text)
+      if is_partial.word then
+        completion_text = u.to_next_word(completion_text)
+      end
+      if is_partial.line then
+        completion_text = u.to_next_line(completion_text)
+      end
     end
     return { completion_text = completion_text, prior_delete = prior_delete, is_active = current_instance.is_active }
   end
@@ -171,7 +176,11 @@ function CompletionPreview.on_accept_suggestion(is_partial)
 end
 
 function CompletionPreview.on_accept_suggestion_word()
-  CompletionPreview.on_accept_suggestion(true)
+  CompletionPreview.on_accept_suggestion({ word = true })
+end
+
+function CompletionPreview.on_accept_suggestion_line()
+  CompletionPreview.on_accept_suggestion({ line = true })
 end
 
 function CompletionPreview.on_dispose_inlay()

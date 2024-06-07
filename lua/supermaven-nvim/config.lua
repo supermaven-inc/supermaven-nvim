@@ -3,6 +3,7 @@ local default_config = {
     accept_suggestion = "<Tab>",
     clear_suggestion = "<C-]>",
     accept_word = "<C-j>",
+    accept_line = "<C-l>",
   },
   ignore_filetypes = {},
   disable_inline_completion = false,
