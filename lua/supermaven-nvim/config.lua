@@ -7,6 +7,7 @@ local default_config = {
   ignore_filetypes = {},
   disable_inline_completion = false,
   disable_keymaps = false,
+  dot_repeat = false,
 }
 
 local M = {

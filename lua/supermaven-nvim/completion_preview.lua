@@ -5,6 +5,7 @@ local CompletionPreview = {
   ns_id = vim.api.nvim_create_namespace("supermaven"),
   suggestion_group = "Comment",
   disable_inline_completion = false,
+  last_suggestion_text = nil,
 }
 
 CompletionPreview.__index = CompletionPreview
@@ -113,8 +114,16 @@ function CompletionPreview:accept_completion_text(is_partial)
     if is_partial then
       completion_text = u.to_next_word(completion_text)
     end
+    self.last_suggestion_text = completion_text
     return { completion_text = completion_text, prior_delete = prior_delete, is_active = current_instance.is_active }
   end
+end
+
+function CompletionPreview:repeat_completion_text()
+  if self.last_suggestion_text == nil then
+    return nil
+  end
+  return { completion_text = self.last_suggestion_text, prior_delete = 0, is_active = true }
 end
 
 function CompletionPreview:should_completion_be_active(completion_text, line_before_cursor, first_line)
@@ -137,8 +146,13 @@ function CompletionPreview:get_inlay_instance()
   return self.inlay_instance
 end
 
-function CompletionPreview.on_accept_suggestion(is_partial)
-  local accept_completion = CompletionPreview:accept_completion_text(is_partial)
+function CompletionPreview.on_accept_suggestion(is_partial, is_repeat)
+  local accept_completion
+  if is_repeat then
+    accept_completion = CompletionPreview:repeat_completion_text()
+  else
+    accept_completion = CompletionPreview:accept_completion_text(is_partial)
+  end
   if accept_completion ~= nil and accept_completion.is_active then
     local completion_text = accept_completion.completion_text
     local prior_delete = accept_completion.prior_delete
@@ -170,8 +184,12 @@ function CompletionPreview.on_accept_suggestion(is_partial)
   end
 end
 
+function CompletionPreview.on_repeat_suggestion()
+  CompletionPreview.on_accept_suggestion(false, true)
+end
+
 function CompletionPreview.on_accept_suggestion_word()
-  CompletionPreview.on_accept_suggestion(true)
+  CompletionPreview.on_accept_suggestion(true, false)
 end
 
 function CompletionPreview.on_dispose_inlay()

@@ -21,6 +21,10 @@ M.setup = function(args)
       )
     end
 
+    if config.dot_repeat then
+      vim.keymap.set("n", ".", completion_preview.on_repeat_suggestion, { noremap = true, silent = true })
+    end
+
     if config.keymaps.accept_word ~= nil then
       local accept_word_key = config.keymaps.accept_word
       vim.keymap.set(
