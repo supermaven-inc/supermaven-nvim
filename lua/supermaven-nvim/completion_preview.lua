@@ -2,8 +2,8 @@ local u = require("supermaven-nvim.util")
 local config = require("supermaven-nvim.config")
 
 local suggestion_group = "Comment"
-if config.config.color ~= nil then
-  suggestion_group = config.config.color.suggestion_group or "Comment"
+if config.color ~= nil then
+  suggestion_group = config.color.suggestion_group or "Comment"
 end
 
 local CompletionPreview = {
