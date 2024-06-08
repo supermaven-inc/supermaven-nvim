@@ -72,6 +72,9 @@ function BinaryLifecycle:greeting_message()
 end
 
 function BinaryLifecycle:on_update(buffer, file_name, event_type)
+  if config.condition() then
+    return
+  end
   local buffer_text = u.get_text(buffer)
   local updates = {
     {
@@ -287,6 +290,11 @@ function BinaryLifecycle:poll_once()
     self.wants_polling = false
     return
   end
+
+  if config.condition() then
+    return
+  end
+
   if config.ignore_filetypes[vim.bo.filetype] then
     return
   end
