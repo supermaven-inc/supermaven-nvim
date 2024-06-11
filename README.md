@@ -30,6 +30,22 @@ use {
 }
 ```
 
+### Using with vim-plug
+
+```vim
+" In init.vim
+call plug#begin('~/.config/nvim/plugged')
+
+Plug 'supermaven-inc/supermaven-nvim'
+
+call plug#end()
+
+" Then add the following configuration to set up the plugin
+lua << EOF
+require("supermaven-nvim").setup({})
+EOF
+```
+
 ### Optional configuration
 
 By default, supermaven-nvim will use the `<Tab>` and `<C-]>` keymaps to accept and clear suggestions. You can change these keymaps by passing a `keymaps` table to the .setup({}) function. Also in this table is `accept_word`, which allows partially accepting a completion, up to the end of the next word. By default this keymap is set to `<C-j>`.
