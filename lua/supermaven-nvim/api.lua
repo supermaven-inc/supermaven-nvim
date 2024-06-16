@@ -12,7 +12,9 @@ end
 
 M.start = function()
   if M.is_running() then
-    vim.notify("Supermaven is already running.", vim.log.levels.WARN)
+    log:warn("Supermaven is already running.")
+  else
+    log:trace("Starting Supermaven...")
   end
   binary:start_binary()
   listener.setup()
@@ -20,8 +22,10 @@ end
 
 M.stop = function()
   if not M.is_running() then
-    vim.notify("Supermaven is not running.", vim.log.levels.WARN)
+    log:warn("Supermaven is not running.")
     return
+  else
+    log:trace("Stopping Supermaven...")
   end
   listener.teardown()
   binary:stop_binary()

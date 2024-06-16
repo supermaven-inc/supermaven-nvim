@@ -50,9 +50,7 @@ require("supermaven-nvim").setup({
     suggestion_color = "#ffffff",
     cterm = 244,
   },
-  debug = false, -- set to true to enable debug logging
-  silence_info = false, -- set to true to silence info messages
-  log_level = "warn", -- set to "off" to disable logging completely
+  log_level = "info", -- set to "off" to disable logging completely
   disable_inline_completion = false, -- disables inline completion for use with cmp
   disable_keymaps = false -- disables built in keymaps for more manual control
 })

@@ -9,9 +9,9 @@ local log = {}
 local join_path = function(...)
 	local is_windows = vim.loop.os_uname().version:match("Windows") -- could be "Windows" or "Windows_NT"
 	local path_sep = is_windows and "\\" or "/"
-  if vim.version().minor >= 10 then
-    return table.concat(vim.iter({ ... }):flatten():totable(), path_sep):gsub(path_sep .. "+", path_sep)
-  end
+	if vim.version().minor >= 10 then
+		return table.concat(vim.iter({ ... }):flatten():totable(), path_sep):gsub(path_sep .. "+", path_sep)
+	end
 	return table.concat(vim.tbl_flatten({ ... }), path_sep):gsub(path_sep .. "+", path_sep)
 end
 
@@ -36,8 +36,8 @@ end
 function log:write_log_file(level, msg)
 	local log_path = log:get_log_path()
 	if log_path == nil then
-    create_log_file()
-    return
+		create_log_file()
+		return
 	end
 	local file = io.open(log_path, "a")
 	if file == nil then
@@ -59,7 +59,7 @@ function log:add_entry(level, msg)
 
 	if not self.__notify_fmt then
 		self.__notify_fmt = function(message)
-			return string.format(message)
+			return string.format(string.format("[supermaven-nvim] %s", message))
 		end
 	end
 
@@ -68,19 +68,9 @@ function log:add_entry(level, msg)
 	end
 
 	self:write_log_file(level, msg)
-	if level == "info" then
-		print(self.__notify_fmt(string.format("[supermaven-nvim] INFO: %s", msg)))
+	if level ~= "error" and level ~= "warn" then
+		print(self.__notify_fmt(msg))
 	end
-  if not conf.silence_info then
-    if level == "trace" then
-      print(self.__notify_fmt(string.format("[supermaven-nvim] TRACE: %s", msg)))
-    end
-  end
-  if conf.debug then
-    if level == "debug" then
-      print(self.__notify_fmt(string.format("[supermaven-nvim] DEBUG: %s", msg)))
-    end
-  end
 end
 
 --- Returns the path to the log file
@@ -105,7 +95,7 @@ end
 ---@param msg string: The log message
 function log:warn(msg)
 	self:add_entry("warn", msg)
-	vim.api.nvim_err_writeln(self.__notify_fmt(msg))
+	vim.api.nvim_notify(self.__notify_fmt(msg), vim.log.levels.WARN, { title = "Supermaven" })
 end
 
 --- Logs an error message to the log file
@@ -113,7 +103,7 @@ end
 ---@param msg string: The log message
 function log:error(msg)
 	self:add_entry("error", msg)
-	vim.api.nvim_err_writeln(self.__notify_fmt(msg))
+	vim.api.nvim_notify(self.__notify_fmt(msg), vim.log.levels.ERROR, { title = "Supermaven" })
 end
 
 --- Logs an informational message to the log file
