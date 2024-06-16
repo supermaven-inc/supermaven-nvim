@@ -1,3 +1,4 @@
+local log = require("supermaven-nvim.logger")
 local BinaryFetcher = {
   binary_path = nil,
   binary_url = nil,
@@ -63,7 +64,7 @@ function BinaryFetcher:discover_binary_url()
 
   local json = vim.fn.json_decode(response)
   if json == nil then
-    print("Error: Unable to find download URL for Supermaven binary")
+    log:error("Unable to find download URL for Supermaven binary")
     return nil
   end
 
@@ -78,7 +79,7 @@ function BinaryFetcher:fetch_binary()
   else
     local success = vim.fn.mkdir(self:local_binary_parent_path(), "p")
     if not success then
-      print("Error creating directory " .. self:local_binary_parent_path())
+      log:error("Error creating directory " .. self:local_binary_parent_path())
       return nil
     end
   end
@@ -88,7 +89,7 @@ function BinaryFetcher:fetch_binary()
     return nil
   end
 
-  print("Downloading Supermaven binary, please wait...")
+  log:info("Downloading Supermaven binary, please wait...")
   local temp_path = generate_temp_path(10)
 
   local platform = self:platform()
@@ -110,9 +111,9 @@ function BinaryFetcher:fetch_binary()
     if platform ~= "windows" then
       vim.fn.system({ "mv", temp_path, local_binary_path })
     end
-    print("Downloaded binary sm-agent to " .. local_binary_path)
+    log:info("Downloaded binary sm-agent to " .. local_binary_path)
   else
-    print("Error: sm-agent download failed")
+    log:error("sm-agent download failed")
     return nil
   end
   vim.loop.fs_chmod(local_binary_path, 493)
