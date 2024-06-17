@@ -53,6 +53,11 @@ end
 ---@param msg string: The log message
 function log:add_entry(level, msg)
 	local conf = c.config
+
+	if conf.log_level == "off" then
+		return
+	end
+
 	if self.__log_file == nil then
 		self.__log_file = create_log_file()
 	end
@@ -61,10 +66,6 @@ function log:add_entry(level, msg)
 		self.__notify_fmt = function(message)
 			return string.format(string.format("[supermaven-nvim] %s", message))
 		end
-	end
-
-	if conf.log_level == "off" then
-		return
 	end
 
 	self:write_log_file(level, msg)
