@@ -50,6 +50,7 @@ require("supermaven-nvim").setup({
     suggestion_color = "#ffffff",
     cterm = 244,
   },
+  log_level = "info", -- set to "off" to disable logging completely
   disable_inline_completion = false, -- disables inline completion for use with cmp
   disable_keymaps = false -- disables built in keymaps for more manual control
   dot_repeat = false -- enables repeating the last suggestion with `.`
@@ -135,19 +136,23 @@ Upon starting supermaven-nvim, you will be prompted to either use the Free Tier 
 
 If Supermaven is set up, you can use `:SupermavenLogout` to switch versions.
 
+You can also use `:SupermavenShowLog` to view the logged messages in `path/to/stdpath-cache/supermaven-nvim.log` if you encounter any issues. Or `:SupermavenClearLog` to clear the log file.
+
 ### Commands
 
 Supermaven-nvim provides the following commands:
 
 ```
-:SupermavenStart   start supermaven-nvim
-:SupermavenStop    stop supermaven-nvim
-:SupermavenRestart restart supermaven-nvim
-:SupermavenToggle  toggle supermaven-nvim
-:SupermavenStatus  show status of supermaven-nvim
-:SupermavenUseFree switch to the free version
-:SupermavenUsePro  switch to the pro version
-:SupermavenLogout  log out of supermaven
+:SupermavenStart    start supermaven-nvim
+:SupermavenStop     stop supermaven-nvim
+:SupermavenRestart  restart supermaven-nvim
+:SupermavenToggle   toggle supermaven-nvim
+:SupermavenStatus   show status of supermaven-nvim
+:SupermavenUseFree  switch to the free version
+:SupermavenUsePro   switch to the pro version
+:SupermavenLogout   log out of supermaven
+:SupermavenShowLog  show logs for supermaven-nvim
+:SupermavenClearLog clear logs for supermaven-nvim
 ```
 
 ### Lua API
@@ -165,4 +170,6 @@ api.is_running() -- returns true if supermaven-nvim is running
 api.use_free_version() -- switch to the free version
 api.use_pro() -- switch to the pro version
 api.logout() -- log out of supermaven
+api.show_log() -- show logs for supermaven-nvim
+api.clear_log() -- clear logs for supermaven-nvim
 ```

@@ -8,6 +8,7 @@ local default_config = {
   disable_inline_completion = false,
   disable_keymaps = false,
   dot_repeat = false,
+  log_level = "info",
 }
 
 local M = {

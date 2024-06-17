@@ -1,4 +1,5 @@
 local completion_preview = require("supermaven-nvim.completion_preview")
+local log = require("supermaven-nvim.logger")
 local config = require("supermaven-nvim.config")
 local commands = require("supermaven-nvim.commands")
 local api = require("supermaven-nvim.api")
@@ -49,9 +50,8 @@ M.setup = function(args)
     cmp.register_source("supermaven", cmp_source.new())
   else
     if config.disable_inline_completion then
-      vim.notify(
-        "nvim-cmp is not available, but inline completion is disabled. Supermaven nvim-cmp source will not be registered.",
-        vim.log.levels.WARN
+      log:warn(
+        "nvim-cmp is not available, but inline completion is disabled. Supermaven nvim-cmp source will not be registered."
       )
     end
   end
