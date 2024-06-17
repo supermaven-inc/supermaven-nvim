@@ -428,8 +428,7 @@ function BinaryLifecycle:show_activation_message()
   if self.activate_url ~= nil then
     log:info([[Thanks for installing supermaven!
 
-Use :SupermavenUsePro to set up Supermaven pro, or use the command :SupermavenUseFree to use the Free Tier]]
-    )
+Use :SupermavenUsePro to set up Supermaven pro, or use the command :SupermavenUseFree to use the Free Tier]])
   end
 end
 
