@@ -2,8 +2,6 @@ local binary = require("supermaven-nvim.binary.binary_handler")
 local listener = require("supermaven-nvim.document_listener")
 local log = require("supermaven-nvim.logger")
 
-local log_path = log:get_log_path()
-
 local M = {}
 
 M.is_running = function()
@@ -59,6 +57,7 @@ M.logout = function()
 end
 
 M.show_log = function()
+    local log_path = log:get_log_path()
     if log_path ~= nil then
       vim.cmd.tabnew()
       vim.cmd(string.format(":e %s", log_path))
