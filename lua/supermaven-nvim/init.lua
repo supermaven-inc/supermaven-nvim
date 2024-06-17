@@ -1,8 +1,8 @@
 local api = require("supermaven-nvim.api")
 local commands = require("supermaven-nvim.commands")
 local completion_preview = require("supermaven-nvim.completion_preview")
-local log = require("supermaven-nvim.logger")
 local config = require("supermaven-nvim.config")
+local log = require("supermaven-nvim.logger")
 
 local M = {}
 

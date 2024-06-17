@@ -2,11 +2,10 @@ local loop = vim.loop
 local api = vim.api
 local binary_fetcher = require("supermaven-nvim.binary.binary_fetcher")
 local config = require("supermaven-nvim.config")
+local log = require("supermaven-nvim.logger")
 local preview = require("supermaven-nvim.completion_preview")
 local textual = require("supermaven-nvim.textual")
 local u = require("supermaven-nvim.util")
-local binary_fetcher = require("supermaven-nvim.binary.binary_fetcher")
-local log = require("supermaven-nvim.logger")
 
 local binary_path = binary_fetcher:fetch_binary()
 
@@ -44,7 +43,7 @@ function BinaryLifecycle:start_binary()
       "stdio",
     },
     stdio = { self.stdin, self.stdout, self.stderr },
-  }, function(code, signal)
+  }, function(code, _signal)
     log:debug("sm-agent exited with code " .. code)
     self.handle:close()
     self.handle = nil
