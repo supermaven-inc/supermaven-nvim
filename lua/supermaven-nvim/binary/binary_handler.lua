@@ -17,7 +17,7 @@ local BinaryLifecycle = {
   cursor = nil,
   max_state_id_retention = 50,
   service_message_displayed = false,
-  popup_should_open = false,
+  popup_should_open = true,
   popups_opened = 0,
 }
 
@@ -203,6 +203,8 @@ function BinaryLifecycle:process_message(message)
     if not self.service_message_displayed then
       if message.display then
         log:trace("Supermaven " .. message.display .. " is running.")
+        self.popups_opened = 0
+        self.popup_should_open = true
       end
       self.service_message_displayed = true
     end
@@ -436,27 +438,31 @@ end
 
 function BinaryLifecycle:use_free_version()
   if not self.service_message_displayed then
-    vim.notify("Loading Supermaven ...", vim.log.levels.WARN, { title = "Supermaven" })
+    log:info("Loading Supermaven ...")
     self.popup_should_open = true
-    self.popups_opened = self.popups_opened + 1
+    self.popups_opened = 1
     self:close_popup()
+    if not self:is_running() then
+      require("supermaven-nvim.api").start()
+    end
   end
   local message = vim.json.encode({ kind = "use_free_version" }) .. "\n"
   loop.write(self.stdin, message) -- fails silently
 end
 
 function BinaryLifecycle:logout()
-  if self.popups_opened == 0 then
-    vim.notify("Already logged out from Supermaven", vim.log.levels.WARN, { title = "Supermaven" })
+  if self.popups_opened == 0 and not self.popup_should_open then
+    log:warn("Already logged out from Supermaven")
     return
   else
-    vim.notify("Logging out from Supermaven ...", vim.log.levels.WARN, { title = "Supermaven" })
+    log:info("Logging out from Supermaven ...")
   end
   self.service_message_displayed = false
-  self.popup_should_open = false
+  self.popup_should_open = true
   self.popups_opened = 0
   local message = vim.json.encode({ kind = "logout" }) .. "\n"
   loop.write(self.stdin, message) -- fails silently
+  require("supermaven-nvim.api").stop()
 end
 
 function BinaryLifecycle:use_pro()
@@ -466,9 +472,15 @@ function BinaryLifecycle:use_pro()
     self.popup_should_open = true
     self.popups_opened = 0
     self:open_popup(self.activate_url)
+    if not self:is_running() then
+      require("supermaven-nvim.api").start()
+    end
   else
     log:error("Could not find an activation URL.")
-    self.popups_opened = self.popups_opened + 1
+    self.popups_opened = 1
+    if self:is_running() then
+      require("supermaven-nvim.api").stop()
+    end
   end
 end
 
@@ -480,7 +492,7 @@ function BinaryLifecycle:popup_tracker_state(change)
     self.popups_opened = 0
   elseif change == "close" then
     self.popup_should_open = false
-    self.popups_opened = self.popups_opened + 1
+    self.popups_opened = 1
     self.service_message_displayed = false
   end
 end
@@ -492,12 +504,13 @@ function BinaryLifecycle:close_popup(close)
   self.win = nil
   if close and self.popups_opened > 0 then
     self:popup_tracker_state("close")
-    vim.notify("Supermaven is now disabled", vim.log.levels.WARN, { title = "Supermaven" })
+    log:warn("Supermaven is now disabled")
   end
 end
 
 function BinaryLifecycle:open_popup(message, include_free)
   if self.popups_opened > 0 then
+    self.popup_should_open = false
     return
   end
   if (self.win ~= nil and vim.api.nvim_win_is_valid(self.win)) or not self.popup_should_open then
@@ -537,10 +550,9 @@ function BinaryLifecycle:open_popup(message, include_free)
   }
 
   local win = vim.api.nvim_open_win(buf, true, opts)
-  self.popups_opened = self.popups_opened + 1
-  vim.notify("Logged out from Supermaven", vim.log.levels.WARN, { title = "Supermaven" })
+  self.popups_opened = 1
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, { intro_message, "", message .. " " })
-  
+
   if vim.version().minor >= 10 then
     vim.api.nvim_set_option_value("winhl", "Normal:Normal", { scope = "local", win = win })
     vim.api.nvim_set_option_value("wrap", true, { scope = "local", win = win })
