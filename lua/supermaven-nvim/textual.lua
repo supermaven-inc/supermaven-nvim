@@ -79,7 +79,7 @@ local function can_delete(params)
   return true
 end
 
-local function finish_completion(output, deletion, dedent, params)
+local function finish_completion(output, _deletion, dedent, params)
   if not can_delete(params) then
     return nil
   end
