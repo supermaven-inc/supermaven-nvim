@@ -67,6 +67,7 @@ M.show_log = function()
 end
 
 M.clear_log = function()
+    local log_path = log:get_log_path()
     if log_path ~= nil then
       vim.loop.fs_unlink(log_path)
       else
