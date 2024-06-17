@@ -14,10 +14,10 @@ lint:
 	@$(call style_calls,"Linting lua files")
 	@selene --display-style quiet --config ./selene.toml lua/supermaven-nvim
 	@$(call style_calls,"Running stylua check")
-	@stylua --color always -f ./stylua.toml --check .
+	@stylua --color always -f ./.stylua.toml --check .
 
 format:
 	@$(call style_calls,"Running stylua format")
-	@stylua --color always -f ./stylua.toml .
+	@stylua --color always -f ./.stylua.toml .
 
 all: lint format
