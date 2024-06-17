@@ -10,6 +10,7 @@ local default_config = {
   condition = function()
     return false
   end,
+  log_level = "info",
 }
 
 local M = {
