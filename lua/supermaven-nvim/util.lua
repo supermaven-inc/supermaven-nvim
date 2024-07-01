@@ -186,4 +186,17 @@ function M.to_next_word(str)
   return str
 end
 
+function M.to_next_line(str)
+  local match = str:match("\n")
+  if match ~= nil then
+    local lines = vim.split(str, "\n")
+    if lines[1] ~= "" then
+      return lines[1]
+    else
+      return "\n" .. lines[2]
+    end
+  end
+  return str
+end
+
 return M
