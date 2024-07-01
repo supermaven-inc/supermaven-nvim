@@ -426,9 +426,9 @@ end
 
 function BinaryLifecycle:show_activation_message()
   if self.activate_url ~= nil then
-    log:info([[Thanks for installing supermaven!
+    log:info([[Thank you for installing Supermaven!
 
-Use :SupermavenUsePro to set up Supermaven pro, or use the command :SupermavenUseFree to use the Free Tier]])
+Use :SupermavenUsePro to set up Supermaven Pro, or use the command :SupermavenUseFree to use the Free Tier]])
   end
 end
 
@@ -475,7 +475,7 @@ function BinaryLifecycle:open_popup(message, include_free)
     height = vim.api.nvim_get_option("lines")
   end
 
-  local intro_message = "Please visit the following Url to set up Supermaven Pro"
+  local intro_message = "Please visit the following URL to set up Supermaven Pro"
   if include_free then
     intro_message = intro_message .. " (or use :SupermavenUseFree)."
   end
