@@ -69,8 +69,10 @@ function log:add_entry(level, msg)
   end
 
   self:write_log_file(level, msg)
-  if level ~= "error" and level ~= "warn" then
-    print(self.__notify_fmt(msg))
+  if conf.log_level ~= "error" and conf.log_level ~= "warn" then
+    if level ~= "error" and level ~= "warn" then
+      print(self.__notify_fmt(msg))
+    end
   end
 end
 
