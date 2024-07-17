@@ -43,9 +43,6 @@ function BinaryLifecycle:start_binary()
       "stdio",
     },
     stdio = { self.stdin, self.stdout, self.stderr },
-    env = {
-      SM_EDITOR = "neovim",
-    }
   }, function(code, signal)
     log:debug("sm-agent exited with code " .. code)
     self.handle:close()
