@@ -38,13 +38,13 @@ function source.resolve(self, completion_item, callback)
   callback(completion_item)
 end
 
-function source.execute(self, completion_item, callback)
+function source.execute(_self, completion_item, callback)
   CompletionPreview:dispose_inlay()
 
   callback(completion_item)
 end
 
-function source.complete(self, params, callback)
+function source.complete(_self, _params, callback)
   local inlay_instance = CompletionPreview:get_inlay_instance()
 
   if inlay_instance == nil or inlay_instance.is_active == false then
@@ -107,7 +107,7 @@ function source.complete(self, params, callback)
   })
 end
 
-function source.new(client, opts)
+function source.new(client, _opts)
   local self = setmetatable({
     timer = vim.loop.new_timer(),
   }, { __index = source })

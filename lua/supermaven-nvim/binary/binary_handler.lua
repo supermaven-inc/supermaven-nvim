@@ -1,11 +1,11 @@
 local loop = vim.loop
 local api = vim.api
-local u = require("supermaven-nvim.util")
-local textual = require("supermaven-nvim.textual")
-local config = require("supermaven-nvim.config")
-local preview = require("supermaven-nvim.completion_preview")
 local binary_fetcher = require("supermaven-nvim.binary.binary_fetcher")
+local config = require("supermaven-nvim.config")
 local log = require("supermaven-nvim.logger")
+local preview = require("supermaven-nvim.completion_preview")
+local textual = require("supermaven-nvim.textual")
+local u = require("supermaven-nvim.util")
 
 local binary_path = binary_fetcher:fetch_binary()
 
@@ -43,7 +43,7 @@ function BinaryLifecycle:start_binary()
       "stdio",
     },
     stdio = { self.stdin, self.stdout, self.stderr },
-  }, function(code, signal)
+  }, function(code, _signal)
     log:debug("sm-agent exited with code " .. code)
     self.handle:close()
     self.handle = nil
@@ -72,7 +72,7 @@ function BinaryLifecycle:greeting_message()
   loop.write(self.stdin, message) -- fails silently
 end
 
-function BinaryLifecycle:on_update(buffer, file_name, event_type)
+function BinaryLifecycle:on_update(buffer, file_name, _event_type)
   local buffer_text = u.get_text(buffer)
   local updates = {
     {
@@ -250,7 +250,7 @@ function BinaryLifecycle:send_message(updates)
   loop.write(self.stdin, message) -- fails silently
 end
 
-function BinaryLifecycle:save_state_id(buffer, cursor, file_name)
+function BinaryLifecycle:save_state_id(buffer, cursor, _file_name)
   self.current_state_id = self.current_state_id + 1
   self:purge_old_states()
 
