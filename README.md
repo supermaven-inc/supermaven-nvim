@@ -53,8 +53,28 @@ require("supermaven-nvim").setup({
   log_level = "info", -- set to "off" to disable logging completely
   disable_inline_completion = false, -- disables inline completion for use with cmp
   disable_keymaps = false -- disables built in keymaps for more manual control
+  condition = function()
+    return false
+  end -- condition to check for stopping supermaven, `true` means to stop supermaven when the condition is true.
 })
 ```
+
+### Disabling supermaven-nvim conditionally
+
+By default, supermaven-nvim will always run unless `condition` function returns true or
+current filetype is in `ignore_filetypes`.
+
+You can disable supermaven-nvim conditionally by setting `condition` function to return true.
+
+```lua
+require("supermaven-nvim").setup({
+  condition = function()
+    return string.match(vim.fn.expand("%:t"), "foo.sh")
+  end,
+})
+```
+
+This will disable supermaven-nvim for files with the name `foo.sh` in it, e.g. `myscriptfoo.sh`.
 
 ### Using with nvim-cmp
 

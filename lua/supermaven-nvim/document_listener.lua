@@ -21,6 +21,26 @@ M.setup = function()
     end,
   })
 
+  vim.api.nvim_create_autocmd({ "BufEnter" }, {
+    callback = function(_)
+      local ok, api = pcall(require, "supermaven-nvim.api")
+      if not ok then
+        return
+      end
+      if config.condition() then
+        if api.is_running() then
+          api.stop()
+          return
+        end
+      else
+        if api.is_running() then
+          return
+        end
+        api.start()
+      end
+    end,
+  })
+
   vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
     group = M.augroup,
     callback = function(event)
