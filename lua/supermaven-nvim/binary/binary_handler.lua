@@ -73,7 +73,7 @@ function BinaryLifecycle:greeting_message()
 end
 
 function BinaryLifecycle:on_update(buffer, file_name, event_type)
-  if config.ignore_filetypes[vim.bo.ft] then
+  if config.ignore_filetypes[vim.bo.ft] or vim.tbl_contains(config.ignore_filetypes, vim.bo.filetype) then
     return
   end
   local buffer_text = u.get_text(buffer)
@@ -288,7 +288,7 @@ function BinaryLifecycle:provide_inline_completion_items(buffer, cursor, context
 end
 
 function BinaryLifecycle:poll_once()
-  if config.ignore_filetypes[vim.bo.ft] then
+  if config.ignore_filetypes[vim.bo.ft] or vim.tbl_contains(config.ignore_filetypes, vim.bo.filetype) then
     return
   end
   local now = vim.loop.now()
