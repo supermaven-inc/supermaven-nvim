@@ -17,6 +17,7 @@ local BinaryLifecycle = {
   cursor = nil,
   max_state_id_retention = 50,
   service_message_displayed = false,
+  dust_strings = {},
 }
 
 local timer = loop.new_timer()
