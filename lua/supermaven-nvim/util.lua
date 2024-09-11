@@ -1,3 +1,4 @@
+---@diagnostic disable: deprecated
 local log = require("supermaven-nvim.logger")
 local M = {}
 
@@ -184,6 +185,48 @@ function M.to_next_word(str)
     return match
   end
   return str
+end
+
+-- Flattenning table for all versions
+---@param t table Table to flatten
+---@param n? number Depth of the flattenning, available for version above v0.10.0
+M.tbl_flatten = function(t, n)
+  if n ~= nil then
+    return vim.iter and vim.iter(t):flatten(n):totable() or vim.tbl_flatten(t)
+  end
+  return vim.iter and vim.iter(t):flatten():totable() or vim.tbl_flatten(t)
+end
+
+-- Get options from buffer
+---@param name string Option name, for example `"columns"`
+---@param opts? vim.api.keyset.option Options for the versions above v0.10.0, for example `{ scope = "local" }` default if `opts = nil`
+M.nvim_get_option_value = function(name, opts)
+  if opts ~= nil then
+    return vim.api.nvim_get_option_value and vim.api.nvim_get_option_value(name, opts) or vim.api.nvim_get_option(name)
+  end
+  return vim.api.nvim_get_option_value and vim.api.nvim_get_option_value(name, { scope = "local" })
+    or vim.api.nvim_get_option(name)
+end
+
+-- Set options in a buffer or window
+---@param name string The name of the option you want to set, for example `"winhl"`
+---@param value any The value of the option, for example, for `winhl` the value `"Normal:Normal"`
+---@param opts vim.api.keyset.option The options to set the scope of the window or buffer specified in them
+M.nvim_set_option_value = function(name, value, opts)
+  if opts == nil then
+    log:error("Must specify window or buffer in options, see `:help nvim_set_option_value`")
+    return
+  end
+  if opts.win then
+    return vim.api.nvim_set_option_value and vim.api.nvim_set_option_value(name, value, opts)
+      or vim.api.nvim_win_set_option(opts.win, name, value)
+  elseif opts.buf then
+    return vim.api.nvim_set_option_value and vim.api.nvim_set_option_value(name, value, opts)
+      or vim.api.nvim_buf_set_option(opts.buf, name, value)
+  else
+    log:error("Must specify window or buffer in options, see `:help nvim_set_option_value`")
+    return
+  end
 end
 
 return M
