@@ -218,7 +218,7 @@ function BinaryLifecycle:process_message(message)
 end
 
 function BinaryLifecycle:update_state_id(message)
-  -- Run on recieving binary message
+  -- Run on receiving binary message
   local completion_state_id = tonumber(message.stateId)
   local current_state = self.state_map[completion_state_id]
   if current_state == nil then
