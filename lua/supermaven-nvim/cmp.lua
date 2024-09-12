@@ -1,4 +1,5 @@
 local CompletionPreview = require("supermaven-nvim.completion_preview")
+local u = require("supermaven-nvim.util")
 
 local source = { executions = {} }
 
@@ -109,7 +110,7 @@ end
 
 function source.new(client, opts)
   local self = setmetatable({
-    timer = vim.loop.new_timer(),
+    timer = u.uv.new_timer(),
   }, { __index = source })
 
   self.client = client

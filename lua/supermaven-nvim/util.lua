@@ -229,4 +229,7 @@ M.nvim_set_option_value = function(name, value, opts)
   end
 end
 
+-- Get uv or loop depending on the version
+M.uv = vim.loop or vim.uv
+
 return M

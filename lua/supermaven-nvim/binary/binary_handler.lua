@@ -1,6 +1,6 @@
-local loop = vim.loop
 local api = vim.api
 local u = require("supermaven-nvim.util")
+local loop = u.uv
 local textual = require("supermaven-nvim.textual")
 local config = require("supermaven-nvim.config")
 local preview = require("supermaven-nvim.completion_preview")
@@ -283,7 +283,7 @@ function BinaryLifecycle:provide_inline_completion_items(buffer, cursor, context
   self.buffer = buffer
   self.cursor = cursor
   self.last_context = context
-  self.last_provide_time = vim.loop.now()
+  self.last_provide_time = loop.now()
   self:poll_once()
 end
 
@@ -291,7 +291,7 @@ function BinaryLifecycle:poll_once()
   if config.ignore_filetypes[vim.bo.ft] or vim.tbl_contains(config.ignore_filetypes, vim.bo.filetype) then
     return
   end
-  local now = vim.loop.now()
+  local now = loop.now()
   if now - self.last_provide_time > 5 * 1000 then
     self.wants_polling = false
     return

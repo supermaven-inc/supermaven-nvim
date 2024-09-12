@@ -1,5 +1,6 @@
 ---@diagnostic disable: missing-parameter
 local c = require("supermaven-nvim.config")
+local u = require("supermaven-nvim.util")
 
 ---@class Log
 local log = {}
@@ -7,7 +8,7 @@ local log = {}
 ---@alias LogLevel "off" | "trace" | "debug" | "info" | "warn" | "error" | "log"
 
 local join_path = function(...)
-  local is_windows = vim.loop.os_uname().version:match("Windows") -- could be "Windows" or "Windows_NT"
+  local is_windows = u.uv.os_uname().version:match("Windows") -- could be "Windows" or "Windows_NT"
   local path_sep = is_windows and "\\" or "/"
   if vim.version().minor >= 10 then
     return table.concat(vim.iter({ ... }):flatten():totable(), path_sep):gsub(path_sep .. "+", path_sep)
