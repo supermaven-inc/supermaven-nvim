@@ -21,6 +21,12 @@ local create_log_file = function()
   if log_path ~= nil then
     return
   end
+  -- If the cache directory doesn't exist, create it
+  if vim.fn.isdirectory(vim.fn.stdpath("cache")) == 0 then
+    ---@diagnostic disable-next-line: param-type-mismatch
+    vim.fn.mkdir(vim.fn.stdpath("cache"), "p")
+  end
+
   log_path = join_path(vim.fn.stdpath("cache"), "supermaven-nvim.log")
   local file = io.open(log_path, "w")
   if file == nil then
