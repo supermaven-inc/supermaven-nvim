@@ -1,6 +1,8 @@
 local CompletionPreview = require("supermaven-nvim.completion_preview")
 local u = require("supermaven-nvim.util")
 
+local loop = u.uv
+
 local source = { executions = {} }
 
 local label_text = function(text, lines)
@@ -110,7 +112,7 @@ end
 
 function source.new(client, opts)
   local self = setmetatable({
-    timer = u.uv.new_timer(),
+    timer = loop.new_timer(),
   }, { __index = source })
 
   self.client = client

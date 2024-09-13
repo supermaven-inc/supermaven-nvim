@@ -1,7 +1,9 @@
 local binary = require("supermaven-nvim.binary.binary_handler")
-local u = require("supermaven-nvim.util")
 local listener = require("supermaven-nvim.document_listener")
 local log = require("supermaven-nvim.logger")
+local u = require("supermaven-nvim.util")
+
+local loop = u.uv
 
 local M = {}
 
@@ -70,7 +72,7 @@ end
 M.clear_log = function()
   local log_path = log:get_log_path()
   if log_path ~= nil then
-    u.uv.fs_unlink(log_path)
+    loop.fs_unlink(log_path)
   else
     log:warn("No log file found to remove!")
   end
