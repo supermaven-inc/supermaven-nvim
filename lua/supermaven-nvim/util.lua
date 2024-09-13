@@ -187,9 +187,9 @@ function M.to_next_word(str)
   return str
 end
 
--- Flattenning table for all versions
+-- Flattening table for all versions
 ---@param t table Table to flatten
----@param n? number Depth of the flattenning, available for version above v0.10.0
+---@param n? number Depth of the flattening, available for version above v0.10.0
 M.tbl_flatten = function(t, n)
   if n ~= nil then
     return vim.iter and vim.iter(t):flatten(n):totable() or vim.tbl_flatten(t)
