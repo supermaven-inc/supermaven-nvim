@@ -158,7 +158,7 @@ function CompletionPreview.on_accept_suggestion(is_partial)
     vim.lsp.util.apply_text_edits(
       { { range = range, newText = completion_text } },
       vim.api.nvim_get_current_buf(),
-      "utf-16"
+      "utf-8"
     )
 
     local lines = u.line_count(completion_text)
