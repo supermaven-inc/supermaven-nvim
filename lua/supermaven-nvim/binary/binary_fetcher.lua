@@ -1,9 +1,13 @@
 local log = require("supermaven-nvim.logger")
+local u = require("supermaven-nvim.util")
+
+local loop = u.uv
+
 local BinaryFetcher = {
   binary_path = nil,
   binary_url = nil,
-  os_uname = vim.loop.os_uname(),
-  homedir = vim.loop.os_homedir(),
+  os_uname = loop.os_uname(),
+  homedir = loop.os_homedir(),
 }
 
 local function generate_temp_path(n)
@@ -73,7 +77,7 @@ end
 
 function BinaryFetcher:fetch_binary()
   local local_binary_path = self:local_binary_path()
-  local status = vim.loop.fs_stat(local_binary_path)
+  local status = loop.fs_stat(local_binary_path)
   if status ~= nil then
     return local_binary_path
   else
@@ -116,7 +120,7 @@ function BinaryFetcher:fetch_binary()
     log:error("sm-agent download failed")
     return nil
   end
-  vim.loop.fs_chmod(local_binary_path, 493)
+  loop.fs_chmod(local_binary_path, 493)
   return local_binary_path
 end
 
