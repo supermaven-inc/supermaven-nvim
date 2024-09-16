@@ -1,6 +1,6 @@
 ---@diagnostic disable: missing-parameter
 local c = require("supermaven-nvim.config")
-local loop = vim.loop or vim.uv
+local loop = vim.uv or vim.loop
 
 ---@class Log
 local log = {}
