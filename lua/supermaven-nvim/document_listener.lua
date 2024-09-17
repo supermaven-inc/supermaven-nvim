@@ -9,7 +9,7 @@ local M = {
 M.setup = function()
   M.augroup = vim.api.nvim_create_augroup("supermaven", { clear = true })
 
-  vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
+  vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI", "TextChangedP" }, {
     group = M.augroup,
     callback = function(event)
       local file_name = event["file"]

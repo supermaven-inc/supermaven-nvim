@@ -22,7 +22,8 @@ function CompletionPreview:render_with_inlay(
     return
   end
 
-  if vim.api.nvim_get_mode().mode ~= "i" then
+  local mode = vim.api.nvim_get_mode().mode
+  if mode ~= "i" and mode ~= "ic" then
     return
   end
 
