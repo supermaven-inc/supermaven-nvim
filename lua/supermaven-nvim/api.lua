@@ -12,6 +12,9 @@ M.is_running = function()
 end
 
 M.start = function()
+  if vim.g.SUPERMAVEN_DISABLED == 1 then
+    return
+  end
   if M.is_running() then
     log:warn("Supermaven is already running.")
   else
