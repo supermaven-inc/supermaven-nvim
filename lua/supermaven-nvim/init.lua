@@ -7,11 +7,6 @@ local api = require("supermaven-nvim.api")
 local M = {}
 
 M.setup = function(args)
-  if vim.g.SUPERMAVEN_DISABLED == 1 then
-    log:info("Supermaven is globally disabled.")
-    return
-  end
-
   config.setup(args)
 
   if config.disable_inline_completion then

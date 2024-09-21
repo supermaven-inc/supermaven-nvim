@@ -12,19 +12,19 @@ M.is_running = function()
 end
 
 M.start = function()
-  if vim.g.SUPERMAVEN_DISABLED == 1 then
-    return
-  end
   if M.is_running() then
     log:warn("Supermaven is already running.")
+    return
   else
     log:trace("Starting Supermaven...")
   end
+  vim.g.SUPERMAVEN_DISABLED = 0
   binary:start_binary()
   listener.setup()
 end
 
 M.stop = function()
+  vim.g.SUPERMAVEN_DISABLED = 1
   if not M.is_running() then
     log:warn("Supermaven is not running.")
     return

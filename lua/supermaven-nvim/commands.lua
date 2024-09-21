@@ -43,22 +43,6 @@ M.setup = function()
   vim.api.nvim_create_user_command("SupermavenClearLog", function()
     api.clear_log()
   end, {})
-
-  vim.api.nvim_create_user_command("SupermavenDisable", function()
-    api.stop()
-    vim.cmd([[
-      let g:SUPERMAVEN_DISABLED = 1
-    ]])
-    vim.notify("Supermaven is disabled globally.", vim.log.levels.WARN)
-  end, {})
-
-  vim.api.nvim_create_user_command("SupermavenEnable", function()
-    vim.cmd([[
-      let g:SUPERMAVEN_DISABLED = 0
-    ]])
-    vim.notify("Supermaven is enabled globally.", vim.log.levels.INFO)
-    api.start()
-  end, {})
 end
 
 return M
