@@ -27,7 +27,7 @@ M.setup = function()
       if not ok then
         return
       end
-      if config.condition() then
+      if config.condition() or vim.g.SUPERMAVEN_DISABLED == 1 then
         if api.is_running() then
           api.stop()
           return
