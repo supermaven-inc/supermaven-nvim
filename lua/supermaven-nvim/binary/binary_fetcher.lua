@@ -42,7 +42,11 @@ end
 function BinaryFetcher:discover_binary_url()
   local platform = self:platform()
   local arch = self:get_arch()
-  local url = "https://supermaven.com/api/download-path?platform=" .. platform .. "&arch=" .. arch .. "&editor=neovim"
+  local url = "https://supermaven.com/api/download-path-v2?platform="
+    .. platform
+    .. "&arch="
+    .. arch
+    .. "&editor=neovim"
   local response = ""
   if platform == "windows" then
     response = vim.fn.system({
@@ -130,7 +134,7 @@ end
 
 function BinaryFetcher:local_binary_parent_path()
   local home_dir = self.homedir
-  return home_dir .. "/.supermaven/binary/v15/" .. self:platform() .. "-" .. self:get_arch()
+  return home_dir .. "/.supermaven/binary/v20/" .. self:platform() .. "-" .. self:get_arch()
 end
 
 return BinaryFetcher

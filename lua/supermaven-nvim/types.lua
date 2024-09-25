@@ -36,7 +36,6 @@
 
 ---@alias AnyCompletion TextCompletion | JumpCompletion | DeleteCompletion | SkipCompletion
 
-
 ---@class CompletionParams
 ---@field line_before_cursor string
 ---@field line_after_cursor string
@@ -45,7 +44,6 @@
 ---@field can_show_partial_line boolean
 ---@field can_retry boolean
 ---@field source_state_id integer
-
 
 --- Response types that can be received from the server
 ---@alias ResponseItem CompletionTextResponse | DeleteResponse | DedentResponse | EndResponse | BarrierResponse | FinishEditResponse | SkipResponse | JumpResponse
@@ -75,6 +73,7 @@
 ---@field kind "skip"
 ---@field n integer
 
+--- This is in camelCase because that is how the binary gives it to us
 ---@class JumpResponse
 ---@field kind "jump"
 ---@field fileName string
@@ -84,3 +83,39 @@
 ---@field follow string[]
 ---@field isCreateFile boolean
 
+--- Chain information is primarily used for performance, caching consecutive completions
+---@class TimeStampedChainInfo
+---@field expected_line string
+---@field timestamp integer
+---@field chain_info ChainInfo
+
+---@class ChainInfo
+---@field completion_index integer
+---@field source_state_id integer
+---@field insert_newline boolean
+---@field kind "text" | "delete" | "skip" | "jump"
+
+--- Outgoing messages
+---@class InformFileChangedMessage
+---@field kind "inform_file_change"
+---@field path string
+
+--- State update messages
+---@class FileUpdateMessage
+---@field kind "file_update"
+---@field path string
+---@field content string
+
+---@class CursorUpdateMessage
+---@field kind "cursor_update"
+---@field path string
+---@field offset integer
+
+---@class LastState
+---@field cursor CursorUpdateMessage
+---@field document FileUpdateMessage
+
+---@class DocumentState
+---@field path string
+---@field content string
+---@field cursor CursorUpdateMessage

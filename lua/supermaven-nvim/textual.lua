@@ -185,7 +185,7 @@ end
 ---@param completion_index integer
 ---@return TextCompletion
 local function force_complete(output, dedent, params, completion_index)
-  local result = finish_completion(output .. "\n", deletion, dedent, params, completion_index)
+  local result = finish_completion(output .. "\n", dedent, params, completion_index)
   if result == nil then
     return { kind = "text", text = "", dedent = "", is_incomplete = false }
   else
@@ -214,7 +214,7 @@ function M.derive_completion(completion, params)
         type = "delete",
         lines = delete_lines,
         completion_index = completion_index,
-        source_state_id = params.source_state_id
+        source_state_id = params.source_state_id,
       }
     end
 
@@ -247,7 +247,7 @@ function M.derive_completion(completion, params)
         return force_complete(output, dedent, params, completion_index)
       end
       local following_line = params.get_following_line(output)
-      if u.trim_end(completion_item.verify) == u.trim_end(following_line) then
+      if u.trim_end(response_item.verify) == u.trim_end(following_line) then
         delete_lines[#delete_lines + 1] = following_line
       end
     elseif response_item.kind == "skip" then
