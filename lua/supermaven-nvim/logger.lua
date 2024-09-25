@@ -1,5 +1,6 @@
 ---@diagnostic disable: missing-parameter
 local c = require("supermaven-nvim.config")
+local loop = vim.uv or vim.loop
 
 ---@class Log
 local log = {}
@@ -7,7 +8,7 @@ local log = {}
 ---@alias LogLevel "off" | "trace" | "debug" | "info" | "warn" | "error" | "log"
 
 local join_path = function(...)
-  local is_windows = vim.loop.os_uname().version:match("Windows") -- could be "Windows" or "Windows_NT"
+  local is_windows = loop.os_uname().version:match("Windows") -- could be "Windows" or "Windows_NT"
   local path_sep = is_windows and "\\" or "/"
   if vim.version().minor >= 10 then
     return table.concat(vim.iter({ ... }):flatten():totable(), path_sep):gsub(path_sep .. "+", path_sep)
@@ -21,6 +22,17 @@ local create_log_file = function()
   if log_path ~= nil then
     return
   end
+  -- If the cache directory doesn't exist, create it
+  if vim.fn.isdirectory(vim.fn.stdpath("cache")) == 0 then
+    local cache_dir = vim.fn.stdpath("cache")
+    if type(cache_dir) == "string" then
+      vim.fn.mkdir(cache_dir, "p")
+    elseif type(cache_dir) == "table" then
+      cache_dir = cache_dir[1]
+      vim.fn.mkdir(cache_dir, "p")
+    end
+  end
+
   log_path = join_path(vim.fn.stdpath("cache"), "supermaven-nvim.log")
   local file = io.open(log_path, "w")
   if file == nil then

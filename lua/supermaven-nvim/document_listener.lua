@@ -9,7 +9,7 @@ local M = {
 M.setup = function()
   M.augroup = vim.api.nvim_create_augroup("supermaven", { clear = true })
 
-  vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
+  vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI", "TextChangedP" }, {
     group = M.augroup,
     callback = function(event)
       local file_name = event["file"]
@@ -27,7 +27,7 @@ M.setup = function()
       if not ok then
         return
       end
-      if config.condition() then
+      if config.condition() or vim.g.SUPERMAVEN_DISABLED == 1 then
         if api.is_running() then
           api.stop()
           return

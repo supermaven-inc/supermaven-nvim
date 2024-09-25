@@ -22,7 +22,8 @@ function CompletionPreview:render_with_inlay(
     return
   end
 
-  if vim.api.nvim_get_mode().mode ~= "i" then
+  local mode = vim.api.nvim_get_mode().mode
+  if mode ~= "i" and mode ~= "ic" then
     return
   end
 
@@ -158,7 +159,7 @@ function CompletionPreview.on_accept_suggestion(is_partial)
     vim.lsp.util.apply_text_edits(
       { { range = range, newText = completion_text } },
       vim.api.nvim_get_current_buf(),
-      "utf-16"
+      "utf-8"
     )
 
     local lines = u.line_count(completion_text)
