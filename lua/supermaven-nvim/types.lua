@@ -97,7 +97,7 @@
 
 --- Outgoing messages
 ---@class InformFileChangedMessage
----@field kind "inform_file_change"
+---@field kind "inform_file_changed"
 ---@field path string
 
 --- State update messages

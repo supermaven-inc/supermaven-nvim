@@ -592,7 +592,7 @@ function BinaryLifecycle:document_changed(full_path, buffer_text)
     cursor = api.nvim_win_get_cursor(0),
   }
   local outgoing_message = {
-    kind = "inform_file_change",
+    kind = "inform_file_changed",
     path = full_path,
   }
   self:send_json(outgoing_message)
