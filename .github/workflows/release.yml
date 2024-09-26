@@ -1,0 +1,30 @@
+name: "release"
+on:
+  push:
+    tags:
+      - "v*"
+jobs:
+  luarocks-upload:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: LuaRocks Upload
+        uses: nvim-neorocks/luarocks-tag-release@v7
+        env:
+          LUAROCKS_API_KEY: ${{ secrets.LUAROCKS_API_KEY }}
+        with:
+          summary: "The official Neovim plugin for Supermaven"
+          detailed_description: |
+            The official Neovim plugin for Supermaven.
+
+            This plugin provides code suggestions using Supermaven's AI assistant.
+          template: "./rockspec.template"
+          labels: |
+            neovim-plugin
+            lua
+            nvim
+            neovim
+            nvim-plugin
+            supermaven
+            ai
+          license: "MIT"
