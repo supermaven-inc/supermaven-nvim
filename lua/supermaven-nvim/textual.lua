@@ -246,7 +246,7 @@ function M.derive_completion(completion, params)
       if u.trim(output) ~= "" then
         return force_complete(output, dedent, params, completion_index)
       end
-      local following_line = params.get_following_line(output)
+      local following_line = params.get_following_line(#delete_lines)
       if u.trim_end(response_item.verify) == u.trim_end(following_line) then
         delete_lines[#delete_lines + 1] = following_line
       end

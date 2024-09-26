@@ -39,7 +39,7 @@
 ---@class CompletionParams
 ---@field line_before_cursor string
 ---@field line_after_cursor string
----@field get_following_line fun(line: string): string
+---@field get_following_line fun(index: integer): string
 ---@field dust_strings string[]
 ---@field can_show_partial_line boolean
 ---@field can_retry boolean
