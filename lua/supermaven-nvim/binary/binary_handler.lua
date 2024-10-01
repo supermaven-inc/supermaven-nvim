@@ -17,7 +17,12 @@ local BinaryLifecycle = {
   cursor = nil,
   max_state_id_retention = 50,
   service_message_displayed = false,
+  changed_document_list = {},
+  last_state = nil,
+  dust_strings = {},
 }
+
+BinaryLifecycle.HARD_SIZE_LIMIT = 10e6
 
 local timer = loop.new_timer()
 timer:start(
@@ -72,33 +77,22 @@ function BinaryLifecycle:greeting_message()
   loop.write(self.stdin, message) -- fails silently
 end
 
+---@param buffer integer
+---@param file_name string
+---@param event_type "text_changed" | "cursor"
 function BinaryLifecycle:on_update(buffer, file_name, event_type)
   if config.ignore_filetypes[vim.bo.ft] or vim.tbl_contains(config.ignore_filetypes, vim.bo.filetype) then
     return
   end
   local buffer_text = u.get_text(buffer)
-  local updates = {
-    {
-      kind = "file_update",
-      path = file_name,
-      content = buffer_text,
-    },
-  }
-  local cursor = api.nvim_win_get_cursor(0)
-  if cursor ~= nil then
-    local prefix = self:save_state_id(buffer, cursor, file_name)
-    if prefix == nil then
-      return
-    end
-    local offset = #prefix
-    updates[#updates + 1] = {
-      kind = "cursor_update",
-      path = file_name,
-      offset = offset,
-    }
+  local file_path = vim.api.nvim_buf_get_name(buffer)
+  if #buffer_text > self.HARD_SIZE_LIMIT then
+    log:warn("File is too large to send to server. Skipping...")
+    return
   end
 
-  self:send_message(updates)
+  self:document_changed(file_path, buffer_text)
+  local cursor = api.nvim_win_get_cursor(0)
   local completion_is_allowed = (buffer_text ~= self.last_text) and (self.last_path == file_name)
   local context = {
     document_text = buffer_text,
@@ -242,6 +236,11 @@ function BinaryLifecycle:on_error(err)
   log:error("Error reading stdout: " .. err)
 end
 
+function BinaryLifecycle:send_json(msg)
+  local message = vim.json.encode(msg) .. "\n"
+  loop.write(self.stdin, message) -- fails silently
+end
+
 function BinaryLifecycle:send_message(updates)
   local state_update = {
     kind = "state_update",
@@ -249,26 +248,7 @@ function BinaryLifecycle:send_message(updates)
     updates = updates,
   }
 
-  local message = vim.json.encode(state_update) .. "\n"
-  loop.write(self.stdin, message) -- fails silently
-end
-
-function BinaryLifecycle:save_state_id(buffer, cursor, file_name)
-  self.current_state_id = self.current_state_id + 1
-  self:purge_old_states()
-
-  local status, prefix = pcall(u.get_cursor_prefix, buffer, cursor)
-  if not status then
-    return nil
-  end
-
-  self.state_map[self.current_state_id] = {
-    prefix = prefix,
-    completion = {},
-    has_ended = false,
-  }
-
-  return prefix
+  self:send_json(state_update)
 end
 
 function BinaryLifecycle:purge_old_states()
@@ -306,22 +286,48 @@ function BinaryLifecycle:poll_once()
   local text_split = u.get_text_before_after_cursor(cursor)
   local line_before_cursor = text_split.text_before_cursor
   local line_after_cursor = text_split.text_after_cursor
+  if line_before_cursor == nil or line_after_cursor == nil then
+    return
+  end
   local status, prefix = pcall(u.get_cursor_prefix, buffer, cursor)
   if not status then
     return
   end
-  if line_before_cursor == nil or line_after_cursor == nil then
+  local get_following_line = function(index)
+    return u.safe_get_line(buffer, cursor[1] + index) or ""
+  end
+  local cached_chain_info = nil -- TODO
+  local query_state_id = self:submit_query(buffer, prefix)
+  if query_state_id == nil then
     return
   end
-  local maybe_completion = self:check_state(prefix, line_before_cursor, line_after_cursor)
+  local maybe_completion = self:check_state(
+    prefix,
+    line_before_cursor,
+    line_after_cursor,
+    false,
+    get_following_line,
+    query_state_id,
+    cached_chain_info
+  )
 
   if maybe_completion == nil then
     preview:dispose_inlay()
     return
   end
 
+  if maybe_completion.kind == "jump" then
+    return
+  elseif maybe_completion.kind == "delete" then
+    return
+  elseif maybe_completion.kind == "skip" then
+    return
+  end
+
   self.wants_polling = maybe_completion.is_incomplete
-  if #maybe_completion.dedent > 0 and not u.ends_with(line_before_cursor, maybe_completion.dedent) then
+  if maybe_completion.dedent == nil or
+   (#maybe_completion.dedent > 0 and not u.ends_with(line_before_cursor, maybe_completion.dedent))
+  then
     return
   end
 
@@ -339,11 +345,37 @@ function BinaryLifecycle:poll_once()
   preview:render_with_inlay(buffer, prior_delete, maybe_completion.text, line_after_cursor, line_before_cursor)
 end
 
-function BinaryLifecycle:check_state(prefix, line_before_cursor, line_after_cursor)
+---@param prefix string
+---@param line_before_cursor string
+---@param line_after_cursor string
+---@param can_retry boolean
+---@param get_following_line fun(line: string): string
+---@param query_state_id integer
+---@param cached_chain_info ChainInfo | nil
+---@return AnyCompletion | nil
+function BinaryLifecycle:check_state(
+  prefix,
+  line_before_cursor,
+  line_after_cursor,
+  can_retry,
+  get_following_line,
+  query_state_id,
+  cached_chain_info
+)
+  local params = {
+    line_before_cursor = line_before_cursor,
+    line_after_cursor = line_after_cursor,
+    get_following_line = get_following_line,
+    dust_strings = self.dust_strings,
+    can_show_partial_line = true,
+    can_retry = can_retry,
+    source_state_id = query_state_id,
+  }
+
   self:check_process()
   local best_completion = {}
   local best_length = 0
-  local best_state_id = 0
+  local best_state_id = -1
 
   for state_id, state in pairs(self.state_map) do
     local state_prefix = state.prefix
@@ -363,13 +395,6 @@ function BinaryLifecycle:check_state(prefix, line_before_cursor, line_after_curs
     end
   end
 
-  local params = {
-    line_before_cursor = line_before_cursor,
-    line_after_cursor = line_after_cursor,
-    dust_strings = self.dust_strings,
-    can_show_partial_line = true,
-  }
-
   return textual.derive_completion(best_completion, params)
 end
 
@@ -383,6 +408,65 @@ function BinaryLifecycle:completion_text_length(completion)
   return length
 end
 
+---@param bufnr integer
+---@param prefix string
+---@return integer | nil
+function BinaryLifecycle:submit_query(bufnr, prefix)
+  self:purge_old_states()
+  local buffer_text = u.get_text(bufnr)
+  local offset = #prefix
+  local document_state = {
+    kind = "file_update",
+    path = vim.api.nvim_buf_get_name(bufnr),
+    content = buffer_text,
+  }
+  local cursor_state = {
+    kind = "cursor_update",
+    path = vim.api.nvim_buf_get_name(bufnr),
+    offset = offset,
+  }
+  if self.last_state ~= nil then
+    if #self.changed_document_list == 0 then
+      if self.last_state.cursor.path == cursor_state.path and self.last_state.cursor.offset == cursor_state.offset then
+        if
+          self.last_state.document.path == document_state.path
+          and self.last_state.document.content == document_state.content
+        then
+          return self.current_state_id
+        end
+      end
+    end
+  end
+
+  local updates = {
+    cursor_state,
+  }
+  self:document_changed(document_state.path, buffer_text)
+  for _, document_value in pairs(self.changed_document_list) do
+    updates[#updates + 1] = {
+      kind = "file_update",
+      path = document_value.path,
+      content = document_value.content,
+    }
+  end
+  self.changed_document_list = {}
+  self.current_state_id = self.current_state_id + 1
+  self:send_message(updates)
+  self.state_map[self.current_state_id] = {
+    prefix = prefix,
+    completion = {},
+    has_ended = false,
+  }
+  self.last_state = {
+    cursor = cursor_state,
+    document = document_state,
+  }
+  return self.current_state_id
+end
+
+---@param completion ResponseItem[]
+---@param original_prefix string
+---@return ResponseItem[] | nil
 function BinaryLifecycle:strip_prefix(completion, original_prefix)
   local prefix = original_prefix
   local remaining_response_item = {}
@@ -402,7 +486,7 @@ function BinaryLifecycle:strip_prefix(completion, original_prefix)
           text = text,
         })
       end
-    elseif response_item.kind == "del" then
+    elseif response_item.kind == "delete" then
       table.insert(remaining_response_item, response_item)
     elseif response_item.kind == "dedent" then
       if #prefix > 0 then
@@ -410,7 +494,6 @@ function BinaryLifecycle:strip_prefix(completion, original_prefix)
       end
       table.insert(remaining_response_item, response_item)
     else
-      -- barrier/del get added when prefix has been accounted for
       if #prefix == 0 then
         table.insert(remaining_response_item, response_item)
       end
@@ -500,6 +583,21 @@ function BinaryLifecycle:open_popup(message, include_free)
   u.nvim_set_option_value("wrap", true, { scope = "local", win = win })
 
   self.win = win
+end
+
+---@param full_path string
+---@param buffer_text string
+function BinaryLifecycle:document_changed(full_path, buffer_text)
+  self.changed_document_list[full_path] = {
+    path = full_path,
+    content = buffer_text,
+    cursor = api.nvim_win_get_cursor(0),
+  }
+  local outgoing_message = {
+    kind = "inform_file_changed",
+    path = full_path,
+  }
+  self:send_json(outgoing_message)
 end
 
 return BinaryLifecycle

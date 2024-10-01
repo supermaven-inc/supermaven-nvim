@@ -79,10 +79,16 @@ local function can_delete(params)
   return true
 end
 
-local function finish_completion(output, deletion, dedent, params)
+---@param output string
+---@param dedent string
+---@param params CompletionParams
+---@param full_completion_index integer | nil
+---@return TextCompletion | nil
+local function finish_completion(output, dedent, params, full_completion_index)
   if not can_delete(params) then
     return nil
   end
+  local has_trailing_characters = #u.trim(params.line_after_cursor) > 0
   local output_trimmed = u.trim(output)
   if output_trimmed == "" then
     return nil
@@ -94,9 +100,13 @@ local function finish_completion(output, deletion, dedent, params)
     if first_non_empty_line ~= nil and last_new_line ~= nil then
       local text = output:sub(1, last_new_line)
       return {
+        kind = "text",
         text = text,
         dedent = dedent,
+        should_retry = nil,
         is_incomplete = false,
+        source_state_id = params.source_state_id,
+        completion_index = full_completion_index,
       }
     end
     return nil
@@ -105,58 +115,151 @@ local function finish_completion(output, deletion, dedent, params)
     if index ~= nil then
       local text = output:sub(0, index)
       return {
+        kind = "text",
         text = text,
         dedent = dedent,
+        should_retry = true,
         is_incomplete = false,
+        source_state_id = params.source_state_id,
+        completion_index = nil,
       }
     end
-
-    if not is_all_whitespace_and_closing_paren(params.line_after_cursor) then
-      return nil
-    end
-
-    local trimmed = u.trim(params.line_before_cursor)
-    if trimmed == "" then
-      return nil
-    end
-
-    if params.can_show_partial_line then
+    if params.can_retry then
+      if has_trailing_characters then
+        return {
+          kind = "text",
+          text = output,
+          dedent = dedent,
+          should_retry = true,
+          is_incomplete = true,
+          source_state_id = params.source_state_id,
+          completion_index = nil,
+        }
+      end
+      if u.trim(params.line_before_cursor) == "" then
+        return {
+          kind = "text",
+          text = output,
+          dedent = dedent,
+          should_retry = true,
+          is_incomplete = true,
+          source_state_id = params.source_state_id,
+          completion_index = nil,
+        }
+      end
       return {
+        kind = "text",
         text = output,
         dedent = dedent,
+        should_retry = true,
         is_incomplete = true,
+        source_state_id = params.source_state_id,
+        completion_index = nil,
       }
     end
-  end
 
-  return nil
+    if has_trailing_characters then
+      return nil
+    end
+    if u.trim(params.line_before_cursor) == "" then
+      return nil
+    end
+    if params.can_show_partial_line then
+      return {
+        kind = "text",
+        text = output,
+        dedent = dedent,
+        should_retry = true,
+        is_incomplete = true,
+        source_state_id = params.source_state_id,
+        completion_index = nil,
+      }
+    end
+    return nil
+  end
 end
 
-function M.derive_completion(completion, completion_params)
+---@param output string
+---@param dedent string
+---@param params CompletionParams
+---@param completion_index integer
+---@return TextCompletion
+local function force_complete(output, dedent, params, completion_index)
+  local result = finish_completion(output .. "\n", dedent, params, completion_index)
+  if result == nil then
+    return { kind = "text", text = "", dedent = "", is_incomplete = false }
+  else
+    return result
+  end
+end
+
+---@param completion ResponseItem[]
+---@param params CompletionParams
+---@return AnyCompletion | nil
+function M.derive_completion(completion, params)
   local output = ""
-  local deletion = ""
+  local delete_lines = {}
   local dedent = ""
-  for _, response_item in ipairs(completion) do
+
+  for completion_index, response_item in ipairs(completion) do
+    if response_item.kind == "end" then
+      if string.find(output, "\n") then
+        return force_complete(output, dedent, params, completion_index)
+      else
+        return nil
+      end
+    end
+    if #delete_lines > 0 and response_item.kind ~= "delete" then
+      return {
+        type = "delete",
+        lines = delete_lines,
+        completion_index = completion_index,
+        source_state_id = params.source_state_id,
+      }
+    end
+
     if response_item.kind == "text" then
       output = output .. response_item.text
-    elseif (response_item.kind == "end") or (response_item.kind == "barrier") then
-      if u.trim(output) ~= "" or response_item.kind == "end" then
-        local return_output = u.trim_end(output) .. "\n"
-        local finished_completion = finish_completion(return_output, deletion, dedent, completion_params)
-        if finished_completion ~= nil then
-          return finished_completion
-        else
-          return {
-            text = "",
-            dedent = "",
-            is_incomplete = false,
-          }
-        end
+    elseif (response_item.kind == "barrier") or (response_item.kind == "finish_edit") then
+      if u.trim(output) ~= "" then
+        return force_complete(output, dedent, params, completion_index)
       end
-    elseif response_item.kind == "del" then
-      deletion = deletion .. response_item.text
     elseif response_item.kind == "dedent" then
       dedent = dedent .. response_item.text
+    elseif response_item.kind == "jump" then
+      if u.trim(output) ~= "" then
+        return {
+          kind = "jump",
+          file_name = response_item.fileName,
+          line_number = response_item.lineNumber,
+          verify = response_item.verify,
+          precede = response_item.precede,
+          follow = response_item.follow,
+          completion_index = completion_index + 1,
+          source_state_id = params.source_state_id,
+          is_create_file = response_item.isCreateFile,
+        }
+      else
+        break
+      end
+    elseif response_item.kind == "delete" then
+      if u.trim(output) ~= "" then
+        return force_complete(output, dedent, params, completion_index)
+      end
+      local following_line = params.get_following_line(#delete_lines)
+      if u.trim_end(response_item.verify) == u.trim_end(following_line) then
+        delete_lines[#delete_lines + 1] = following_line
+      end
+    elseif response_item.kind == "skip" then
+      if u.trim(output) ~= "" then
+        return force_complete(output, dedent, params, completion_index)
+      end
+      return {
+        kind = "skip",
+        n = response_item.n,
+        completion_index = completion_index + 1,
+        source_state_id = params.source_state_id,
+      }
     end
   end
 
@@ -166,7 +269,7 @@ function M.derive_completion(completion, completion_params)
     output = output:sub(1, index)
   end
 
-  return finish_completion(output, deletion, dedent, completion_params)
+  return finish_completion(output, dedent, params, nil)
 end
 
 return M

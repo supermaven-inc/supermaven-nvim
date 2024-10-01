@@ -187,6 +187,23 @@ function M.to_next_word(str)
   return str
 end
 
+---@param bufnr number
+---@param line_number number
+---@return string | nil
+function M.safe_get_line(bufnr, line_number)
+  if not vim.api.nvim_buf_is_valid(bufnr) then
+    return nil
+  end
+
+  local line_count = vim.api.nvim_buf_line_count(bufnr)
+  if line_number < 1 or line_number > line_count then
+    return nil
+  end
+
+  local lines = vim.api.nvim_buf_get_lines(bufnr, line_number - 1, line_number, false)
+  return lines[1]
+end
+
 -- Flattening table for all versions
 ---@param t table Table to flatten
 ---@param n? number Depth of the flattening, available for version above v0.10.0
