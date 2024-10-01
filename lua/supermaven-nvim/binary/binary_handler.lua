@@ -325,7 +325,9 @@ function BinaryLifecycle:poll_once()
   end
 
   self.wants_polling = maybe_completion.is_incomplete
-  if #maybe_completion.dedent > 0 and not u.ends_with(line_before_cursor, maybe_completion.dedent) then
+  if maybe_completion.dedent == nil or
+   (#maybe_completion.dedent > 0 and not u.ends_with(line_before_cursor, maybe_completion.dedent))
+  then
     return
   end
 
