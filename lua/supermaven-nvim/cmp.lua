@@ -54,14 +54,13 @@ function source.complete(self, params, callback)
     return
   end
 
+  local context = params.context
+  local cursor = context.cursor
 
-  local context          = params.context
-  local cursor           = context.cursor
-
-  local completion_text  = (inlay_instance.line_before_cursor) .. inlay_instance.completion_text
-  local preview_text     = completion_text
-  local split            = vim.split(completion_text, "\n", { plain = true })
-  local label            = label_text(split[1])
+  local completion_text = inlay_instance.line_before_cursor .. inlay_instance.completion_text
+  local preview_text = completion_text
+  local split = vim.split(completion_text, "\n", { plain = true })
+  local label = label_text(split[1])
 
   local insertTextFormat = 1 -- cmp.lsp.InsertTextFormat.PlainText
 
@@ -72,12 +71,12 @@ function source.complete(self, params, callback)
   local range = {
     start = {
       line = cursor.line,
-      character = math.max(cursor.col - inlay_instance.prior_delete - #inlay_instance.line_before_cursor - 1, 0)
+      character = math.max(cursor.col - inlay_instance.prior_delete - #inlay_instance.line_before_cursor - 1, 0),
     },
     ["end"] = {
       line = cursor.line,
-      character = vim.fn.col("$")
-    }
+      character = vim.fn.col("$"),
+    },
   }
 
   local items = {
