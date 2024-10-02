@@ -5,11 +5,7 @@ local loop = u.uv
 
 local source = { executions = {} }
 
-local label_text = function(text, lines)
-  if lines > 1 then
-    text = text .. " ~"
-  end
-
+local label_text = function(text)
   local shorten = function(str)
     local short_prefix = string.sub(str, 0, 20)
     local short_suffix = string.sub(str, string.len(str) - 15, string.len(str))
@@ -58,28 +54,31 @@ function source.complete(self, params, callback)
     return
   end
 
-  -- local context         = params.context
-  local cursor = vim.api.nvim_win_get_cursor(0)
+
+  local context          = params.context
+  local cursor           = context.cursor
+
+  local completion_text  = (inlay_instance.line_before_cursor) .. inlay_instance.completion_text
+  local preview_text     = completion_text
+  local split            = vim.split(completion_text, "\n", { plain = true })
+  local label            = label_text(split[1])
+
+  local insertTextFormat = 1 -- cmp.lsp.InsertTextFormat.PlainText
+
+  if #split > 1 then
+    insertTextFormat = 2 -- cmp.lsp.InsertTextFormat.Snippet
+  end
 
   local range = {
     start = {
-      line = cursor[1] - 1,
-      -- character = math.max(cursor[2] - inlay_instance.prior_delete, 0),
-      character = vim.fn.col("0"),
+      line = cursor.line,
+      character = math.max(cursor.col - inlay_instance.prior_delete - #inlay_instance.line_before_cursor - 1, 0)
     },
     ["end"] = {
-      line = cursor[1] - 1,
-      character = vim.fn.col("$"),
-    },
+      line = cursor.line,
+      character = vim.fn.col("$")
+    }
   }
-
-  local completion_text = inlay_instance.line_before_cursor .. inlay_instance.completion_text
-  local preview_text = completion_text
-  local split = vim.split(completion_text, "\n", { plain = true })
-  local label = label_text(split[1], #split)
-  -- local label           = u.trim_start(vim.split(completion_text, "\n", { plain = true })[1])
-
-  -- print("Completion label:", label)
 
   local items = {
     {
@@ -87,6 +86,7 @@ function source.complete(self, params, callback)
       kind = 1,
       score = 100,
       filterText = nil,
+      insertTextFormat = insertTextFormat,
       cmp = {
         kind_hl_group = "CmpItemKindSupermaven",
         kind_text = "Supermaven",
