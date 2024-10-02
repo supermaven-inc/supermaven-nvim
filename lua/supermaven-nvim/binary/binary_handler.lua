@@ -1,10 +1,11 @@
-local loop = vim.loop
 local api = vim.api
 local u = require("supermaven-nvim.util")
+local loop = u.uv
 local textual = require("supermaven-nvim.textual")
+local config = require("supermaven-nvim.config")
 local preview = require("supermaven-nvim.completion_preview")
 local binary_fetcher = require("supermaven-nvim.binary.binary_fetcher")
-
+local log = require("supermaven-nvim.logger")
 
 local binary_path = binary_fetcher:fetch_binary()
 
@@ -15,19 +16,21 @@ local BinaryLifecycle = {
   buffer = nil,
   cursor = nil,
   max_state_id_retention = 50,
-  ignore_filetypes = {},
   service_message_displayed = false,
 }
 
 local timer = loop.new_timer()
-timer:start(0, 25, vim.schedule_wrap(function()
-  if BinaryLifecycle.wants_polling then
-    BinaryLifecycle:poll_once()
-  end
-end))
+timer:start(
+  0,
+  25,
+  vim.schedule_wrap(function()
+    if BinaryLifecycle.wants_polling then
+      BinaryLifecycle:poll_once()
+    end
+  end)
+)
 
-function BinaryLifecycle:start_binary(ignore_filetypes)
-  self.ignore_filetypes = ignore_filetypes
+function BinaryLifecycle:start_binary()
   self.stdin = loop.new_pipe(false)
   self.stdout = loop.new_pipe(false)
   self.stderr = loop.new_pipe(false)
@@ -35,24 +38,33 @@ function BinaryLifecycle:start_binary(ignore_filetypes)
   self.last_path = nil
   self.last_context = nil
   self.wants_polling = false
-  self.handle = loop.spawn(binary_path, 
-    {
-      args = {
-        "stdio"
-      },
-      stdio = {self.stdin, self.stdout, self.stderr},
+  self.handle = loop.spawn(binary_path, {
+    args = {
+      "stdio",
     },
-    function(code, signal)
-      print("sm-agent exited with code " .. code)
-      self.handle:close()
-      self.handle = nil
-    end
-  )
+    stdio = { self.stdin, self.stdout, self.stderr },
+  }, function(code, signal)
+    log:debug("sm-agent exited with code " .. code)
+    self.handle:close()
+    self.handle = nil
+  end)
   if not self.handle then
-    print("Error starting binary")
+    log:debug("Starting binary")
   end
   self:read_loop()
   self:greeting_message()
+end
+
+function BinaryLifecycle:is_running()
+  return self.handle ~= nil and self.handle:is_active()
+end
+
+function BinaryLifecycle:stop_binary()
+  if self:is_running() then
+    self.handle:kill(loop.constants.SIGTERM)
+    self.handle:close()
+    self.handle = nil
+  end
 end
 
 function BinaryLifecycle:greeting_message()
@@ -61,6 +73,9 @@ function BinaryLifecycle:greeting_message()
 end
 
 function BinaryLifecycle:on_update(buffer, file_name, event_type)
+  if config.ignore_filetypes[vim.bo.ft] or vim.tbl_contains(config.ignore_filetypes, vim.bo.filetype) then
+    return
+  end
   local buffer_text = u.get_text(buffer)
   local updates = {
     {
@@ -110,7 +125,7 @@ function BinaryLifecycle:check_process()
     self.handle:close()
   end
 
-  self:start_binary(self.ignore_filetypes)
+  self:start_binary()
 end
 
 function BinaryLifecycle:same_context(context)
@@ -118,9 +133,9 @@ function BinaryLifecycle:same_context(context)
     return false
   end
   return context.cursor[1] == self.last_context.cursor[1]
-  and context.cursor[2] == self.last_context.cursor[2]
-  and context.file_name == self.last_context.file_name
-  and context.document_text == self.last_context.document_text
+    and context.cursor[2] == self.last_context.cursor[2]
+    and context.file_name == self.last_context.file_name
+    and context.document_text == self.last_context.document_text
 end
 
 function BinaryLifecycle:read_loop()
@@ -154,8 +169,8 @@ function BinaryLifecycle:process_line(line)
     line = string.sub(line, 12)
     local message = vim.json.decode(line)
     self:process_message(message)
-  else 
-    print("Unknown message: " .. line)
+  else
+    log:debug("Unknown message: " .. line)
   end
 end
 
@@ -166,21 +181,17 @@ function BinaryLifecycle:process_message(message)
     self:update_metadata(message)
   elseif message.kind == "activation_request" then
     self.activate_url = message.activateUrl
-    vim.schedule(
-      function ()
-        if self.activate_url ~= nil then
-          self:open_popup(self.activate_url, true)
-        end
+    vim.schedule(function()
+      if self.activate_url ~= nil then
+        self:open_popup(self.activate_url, true)
       end
-    )
+    end)
   elseif message.kind == "activation_success" then
     self.activate_url = nil
-    print("Supermaven was activated successfully.")
-    vim.schedule(
-      function()
-        self:close_popup()
-      end
-    )
+    log:trace("Supermaven was activated successfully.")
+    vim.schedule(function()
+      self:close_popup()
+    end)
   elseif message.kind == "passthrough" then
     self:process_message(message.passthrough)
   elseif message.kind == "popup" then
@@ -191,14 +202,14 @@ function BinaryLifecycle:process_message(message)
     -- unused, no status bar is displayed
   elseif message.kind == "service_tier" then
     if not self.service_message_displayed then
-      print("Supermaven " .. message.display .. " is running.")
+      if message.display then
+        log:trace("Supermaven " .. message.display .. " is running.")
+      end
       self.service_message_displayed = true
     end
-    vim.schedule(
-      function()
-        self:close_popup()
-      end
-    )
+    vim.schedule(function()
+      self:close_popup()
+    end)
   elseif message.kind == "apology" then
     -- legacy
   elseif message.kind == "set" then
@@ -207,7 +218,7 @@ function BinaryLifecycle:process_message(message)
 end
 
 function BinaryLifecycle:update_state_id(message)
-  -- Run on recieving binary message
+  -- Run on receiving binary message
   local completion_state_id = tonumber(message.stateId)
   local current_state = self.state_map[completion_state_id]
   if current_state == nil then
@@ -227,12 +238,8 @@ function BinaryLifecycle:update_metadata(metadata_message)
 end
 
 function BinaryLifecycle:on_error(err)
-  if self.handle ~= nil then
-    self.handle:kill(loop.constants.SIGTERM)
-    self.handle:close()
-    self.handle = nil
-  end
-  print("Error reading stdout: " .. err)
+  require("supermaven-nvim.api").stop()
+  log:error("Error reading stdout: " .. err)
 end
 
 function BinaryLifecycle:send_message(updates)
@@ -254,7 +261,7 @@ function BinaryLifecycle:save_state_id(buffer, cursor, file_name)
   if not status then
     return nil
   end
-  
+
   self.state_map[self.current_state_id] = {
     prefix = prefix,
     completion = {},
@@ -276,17 +283,17 @@ function BinaryLifecycle:provide_inline_completion_items(buffer, cursor, context
   self.buffer = buffer
   self.cursor = cursor
   self.last_context = context
-  self.last_provide_time = vim.loop.now()
+  self.last_provide_time = loop.now()
   self:poll_once()
 end
 
 function BinaryLifecycle:poll_once()
-  local now = vim.loop.now()
-  if now - self.last_provide_time > 5 * 1000 then
-    self.wants_polling = false
+  if config.ignore_filetypes[vim.bo.ft] or vim.tbl_contains(config.ignore_filetypes, vim.bo.filetype) then
     return
   end
-  if self.ignore_filetypes[vim.bo.filetype] then
+  local now = loop.now()
+  if now - self.last_provide_time > 5 * 1000 then
+    self.wants_polling = false
     return
   end
   self.wants_polling = true
@@ -318,7 +325,11 @@ function BinaryLifecycle:poll_once()
     return
   end
 
-  while #maybe_completion.dedent > 0 and #maybe_completion.text > 0 and maybe_completion.dedent:sub(1, 1) == maybe_completion.text:sub(1, 1) do
+  while
+    #maybe_completion.dedent > 0
+    and #maybe_completion.text > 0
+    and maybe_completion.dedent:sub(1, 1) == maybe_completion.text:sub(1, 1)
+  do
     maybe_completion.text = maybe_completion.text:sub(2)
     maybe_completion.dedent = maybe_completion.dedent:sub(2)
   end
@@ -362,7 +373,6 @@ function BinaryLifecycle:check_state(prefix, line_before_cursor, line_after_curs
   return textual.derive_completion(best_completion, params)
 end
 
-
 function BinaryLifecycle:completion_text_length(completion)
   local length = 0
   for _, response_item in ipairs(completion) do
@@ -380,7 +390,7 @@ function BinaryLifecycle:strip_prefix(completion, original_prefix)
   for _, response_item in ipairs(completion) do
     if response_item.kind == "text" then
       local text = response_item.text
-      if not self:shares_common_prefix(text, prefix) then 
+      if not self:shares_common_prefix(text, prefix) then
         return nil
       end
       local trim_length = math.min(#text, #prefix)
@@ -417,25 +427,13 @@ function BinaryLifecycle:shares_common_prefix(str1, str2)
   return true
 end
 
-
 function BinaryLifecycle:show_activation_message()
   if self.activate_url ~= nil then
-    print("Thanks for installing supermaven!")
-    print("Use :SupermavenUsePro to set up Supermaven pro, or use the command :SupermavenUseFree to use the Free Tier")
+    log:info([[Thank you for installing Supermaven!
+
+Use :SupermavenUsePro to set up Supermaven Pro, or use the command :SupermavenUseFree to use the Free Tier]])
   end
 end
-
-vim.api.nvim_create_user_command("SupermavenUseFree", function()
-  BinaryLifecycle:use_free_version()
-end, {})
-
-vim.api.nvim_create_user_command("SupermavenLogout", function()
-  BinaryLifecycle:logout()
-end, {})
-
-vim.api.nvim_create_user_command("SupermavenUsePro", function()
-  BinaryLifecycle:use_pro()
-end, {})
 
 function BinaryLifecycle:use_free_version()
   local message = vim.json.encode({ kind = "use_free_version" }) .. "\n"
@@ -450,10 +448,10 @@ end
 
 function BinaryLifecycle:use_pro()
   if self.activate_url ~= nil then
-    print("Visit " .. self.activate_url .. " to set up Supermaven Pro")
+    log:debug("Visit " .. self.activate_url .. " to set up Supermaven Pro")
     self:open_popup(self.activate_url)
   else
-    print("Could not find an activation URL.")
+    log:error("Could not find an activation URL.")
   end
 end
 
@@ -470,10 +468,12 @@ function BinaryLifecycle:open_popup(message, include_free)
   end
   local buf = vim.api.nvim_create_buf(false, true)
 
-  local width = vim.api.nvim_get_option("columns")
-  local height = vim.api.nvim_get_option("lines")
+  local width = 0
+  local height = 0
+  width = u.nvim_get_option_value("columns", { scope = "local" })
+  height = u.nvim_get_option_value("lines", { scope = "local" })
 
-  local intro_message = "Please visit the following Url to set up Supermaven Pro"
+  local intro_message = "Please visit the following URL to set up Supermaven Pro"
   if include_free then
     intro_message = intro_message .. " (or use :SupermavenUseFree)."
   end
@@ -496,11 +496,10 @@ function BinaryLifecycle:open_popup(message, include_free)
 
   local win = vim.api.nvim_open_win(buf, true, opts)
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, { intro_message, "", message .. " " })
-  vim.api.nvim_win_set_option(win, "winhl", "Normal:Normal")
-  vim.api.nvim_win_set_option(win, "wrap", true)
+  u.nvim_set_option_value("winhl", "Normal:Normal", { scope = "local", win = win })
+  u.nvim_set_option_value("wrap", true, { scope = "local", win = win })
 
   self.win = win
 end
-
 
 return BinaryLifecycle

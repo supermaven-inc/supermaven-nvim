@@ -45,15 +45,36 @@ require("supermaven-nvim").setup({
     clear_suggestion = "<C-]>",
     accept_word = "<C-j>",
   },
-  ignore_filetypes = { cpp = true },
+  ignore_filetypes = { cpp = true }, -- or { "cpp", }
   color = {
     suggestion_color = "#ffffff",
     cterm = 244,
   },
+  log_level = "info", -- set to "off" to disable logging completely
   disable_inline_completion = false, -- disables inline completion for use with cmp
-  disable_keymaps = false -- disables built in keymaps for more manual control
+  disable_keymaps = false, -- disables built in keymaps for more manual control
+  condition = function()
+    return false
+  end -- condition to check for stopping supermaven, `true` means to stop supermaven when the condition is true.
 })
 ```
+
+### Disabling supermaven-nvim conditionally
+
+By default, supermaven-nvim will always run unless `condition` function returns true or
+current filetype is in `ignore_filetypes`.
+
+You can disable supermaven-nvim conditionally by setting `condition` function to return true.
+
+```lua
+require("supermaven-nvim").setup({
+  condition = function()
+    return string.match(vim.fn.expand("%:t"), "foo.sh")
+  end,
+})
+```
+
+This will disable supermaven-nvim for files with the name `foo.sh` in it, e.g. `myscriptfoo.sh`.
 
 ### Using with nvim-cmp
 
@@ -101,70 +122,10 @@ cmp.setup {
 }
 ```
 
-Pro tip: If you want to simulate continuous suggestions similar to the built in inline completions (which always jumps to the next suggestion); you can achieve this with a timer/poller.
 
-```lua
-local completion_timer = nil
+### Programmatically checking and accepting suggestions
 
-local function stop_completion_polling()
-  if completion_timer ~= nil then
-    completion_timer:stop()
-    completion_timer:close()
-    completion_timer = nil
-  end
-end
-
-local function check_suggestions()
-  if supermaven.has_suggestion() then
-    cmp.complete()
-    stop_completion_polling()
-  end
-end
-
-local function start_completion_polling()
-  local ignored_filetypes = {
-    -- IMPORTANT: filetypes you want to ignore
-  }
-
-  if not vim.tbl_contains(ignored_filetypes, vim.bo.filetype) then
-    if completion_timer == nil then
-      completion_timer = vim.loop.new_timer()
-      completion_timer:start(100, 100, vim.schedule_wrap(check_suggestions))
-    end
-  end
-end
-
-vim.api.nvim_create_autocmd('InsertEnter', {
-  callback = start_completion_polling,
-})
-
-vim.api.nvim_create_autocmd({ 'CursorMoved', 'InsertLeave' }, {
-  callback = stop_completion_polling,
-  pattern = '*',
-  nested = true,
-})
-
-
--- cmp.lua
-
-cmp.setup {
-  ...
-  mapping = {
-    ...
-    ["<C-y>"] = cmp.mapping(function()
-      cmp.confirm({  select = true })
-      start_completion_polling()
-    end),
-    ...
-  },
-  ...
-}
-
-```
-
-### Programatically checking and accepting suggestions
-
-Alternatively, you can also check if there is an active suggestion and accept it programatically.
+Alternatively, you can also check if there is an active suggestion and accept it programmatically.
 
 For example:
 
@@ -194,3 +155,41 @@ end
 Upon starting supermaven-nvim, you will be prompted to either use the Free Tier with the command `:SupermavenUseFree` or to activate a Supermaven Pro subscription by following a link, which will connect your Supermaven account.
 
 If Supermaven is set up, you can use `:SupermavenLogout` to switch versions.
+
+You can also use `:SupermavenShowLog` to view the logged messages in `path/to/stdpath-cache/supermaven-nvim.log` if you encounter any issues. Or `:SupermavenClearLog` to clear the log file.
+
+### Commands
+
+Supermaven-nvim provides the following commands:
+
+```
+:SupermavenStart    start supermaven-nvim
+:SupermavenStop     stop supermaven-nvim
+:SupermavenRestart  restart supermaven-nvim
+:SupermavenToggle   toggle supermaven-nvim
+:SupermavenStatus   show status of supermaven-nvim
+:SupermavenUseFree  switch to the free version
+:SupermavenUsePro   switch to the pro version
+:SupermavenLogout   log out of supermaven
+:SupermavenShowLog  show logs for supermaven-nvim
+:SupermavenClearLog clear logs for supermaven-nvim
+```
+
+### Lua API
+
+The `supermaven-nvim.api` module provides the following functions for interacting with supermaven-nvim from Lua:
+
+```lua
+local api = require("supermaven-nvim.api")
+
+api.start() -- starts supermaven-nvim
+api.stop() -- stops supermaven-nvim
+api.restart() -- restarts supermaven-nvim if it is running, otherwise starts it
+api.toggle() -- toggles supermaven-nvim
+api.is_running() -- returns true if supermaven-nvim is running
+api.use_free_version() -- switch to the free version
+api.use_pro() -- switch to the pro version
+api.logout() -- log out of supermaven
+api.show_log() -- show logs for supermaven-nvim
+api.clear_log() -- clear logs for supermaven-nvim
+```

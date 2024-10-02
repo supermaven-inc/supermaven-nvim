@@ -1,7 +1,9 @@
 local CompletionPreview = require("supermaven-nvim.completion_preview")
--- local u = require("supermaven-nvim.util")
+local u = require("supermaven-nvim.util")
 
-local source = { executions = {}, }
+local loop = u.uv
+
+local source = { executions = {} }
 
 local label_text = function(text)
   local shorten = function(str)
@@ -16,11 +18,11 @@ local label_text = function(text)
 end
 
 function source.get_trigger_characters()
-  return { '*' }
+  return { "*" }
 end
 
 function source.get_keyword_pattern()
-  return '.'
+  return "."
 end
 
 function source.is_available()
@@ -51,6 +53,7 @@ function source.complete(self, params, callback)
     })
     return
   end
+
 
   local context          = params.context
   local cursor           = context.cursor
@@ -86,7 +89,7 @@ function source.complete(self, params, callback)
       insertTextFormat = insertTextFormat,
       cmp = {
         kind_hl_group = "CmpItemKindSupermaven",
-        kind_text = 'Supermaven',
+        kind_text = "Supermaven",
       },
       textEdit = {
         newText = completion_text,
@@ -95,23 +98,21 @@ function source.complete(self, params, callback)
       },
       documentation = {
         kind = "markdown",
-        value = "```" ..
-            vim.bo.filetype ..
-            "\n" .. preview_text .. "\n```"
+        value = "```" .. vim.bo.filetype .. "\n" .. preview_text .. "\n```",
       },
-      dup = 0
-    }
+      dup = 0,
+    },
   }
 
   return callback({
     isIncomplete = false,
-    items = items
+    items = items,
   })
 end
 
 function source.new(client, opts)
   local self = setmetatable({
-    timer = vim.loop.new_timer()
+    timer = loop.new_timer(),
   }, { __index = source })
 
   self.client = client
