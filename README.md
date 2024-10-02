@@ -122,6 +122,7 @@ cmp.setup {
 }
 ```
 
+
 ### Programmatically checking and accepting suggestions
 
 Alternatively, you can also check if there is an active suggestion and accept it programmatically.
