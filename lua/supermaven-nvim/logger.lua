@@ -5,7 +5,16 @@ local loop = vim.uv or vim.loop
 ---@class Log
 local log = {}
 
----@alias LogLevel "off" | "trace" | "debug" | "info" | "warn" | "error" | "log"
+---@alias LogLevel "off" | "trace" | "debug" | "info" | "warn" | "error"
+
+local level_values = {
+  off = 0,
+  trace = 1,
+  debug = 2,
+  info = 3,
+  warn = 4,
+  error = 5,
+}
 
 local join_path = function(...)
   local is_windows = loop.os_uname().version:match("Windows") -- could be "Windows" or "Windows_NT"
@@ -72,7 +81,7 @@ function log:add_entry(level, msg)
     end
   end
 
-  if conf.log_level == "off" then
+  if conf.log_level == "off" or level_values[conf.log_level] == nil then
     return
   end
 
@@ -81,10 +90,8 @@ function log:add_entry(level, msg)
   end
 
   self:write_log_file(level, msg)
-  if conf.log_level ~= "error" and conf.log_level ~= "warn" then
-    if level ~= "error" and level ~= "warn" then
-      print(self.__notify_fmt(msg))
-    end
+  if level_values[level] >= level_values[conf.log_level] then
+    print(self.__notify_fmt(msg))
   end
 end
 
@@ -96,13 +103,6 @@ function log:get_log_path()
     return nil
   end
   return log_path
-end
-
---- Logs a message to the log file
----@example log:log("Hello, world!")
----@param msg string: The log message
-function log:log(msg)
-  self:add_entry("log", msg)
 end
 
 --- Logs a warning message to the log file
