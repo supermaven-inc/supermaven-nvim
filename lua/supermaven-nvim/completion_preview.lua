@@ -95,7 +95,7 @@ function CompletionPreview:dispose_inlay()
   end
 
   local buf = current_instance.buffer
-  if buf ~= nil then
+  if buf ~= nil and vim.api.nvim_buf_is_valid(buf) then
     vim.api.nvim_buf_del_extmark(buf, self.ns_id, 1)
   end
   self.inlay_instance = nil
