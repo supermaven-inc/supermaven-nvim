@@ -1,9 +1,15 @@
 local u = require("supermaven-nvim.util")
+local config = require("supermaven-nvim.config")
+
+local suggestion_group = "Comment"
+if config.color ~= nil then
+  suggestion_group = config.color.suggestion_group or "Comment"
+end
 
 local CompletionPreview = {
   inlay_instance = nil,
   ns_id = vim.api.nvim_create_namespace("supermaven"),
-  suggestion_group = "Comment",
+  suggestion_group = suggestion_group,
   disable_inline_completion = false,
 }
 
