@@ -25,10 +25,12 @@ M.setup = function()
   end, {})
 
   vim.api.nvim_create_user_command("SupermavenUseFree", function()
+    api.logout()
     api.use_free_version()
   end, {})
 
   vim.api.nvim_create_user_command("SupermavenUsePro", function()
+    api.logout()
     api.use_pro()
   end, {})
 
