@@ -11,6 +11,7 @@ local default_config = {
     return false
   end,
   log_level = "info",
+  cmp_label_shorten_length = 40,
 }
 
 local M = {

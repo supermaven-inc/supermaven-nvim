@@ -1,4 +1,5 @@
 local CompletionPreview = require("supermaven-nvim.completion_preview")
+local config = require("supermaven-nvim.config")
 local u = require("supermaven-nvim.util")
 
 local loop = u.uv
@@ -8,13 +9,14 @@ local source = { executions = {} }
 local label_text = function(text)
   local shorten = function(str)
     local short_prefix = string.sub(str, 0, 20)
-    local short_suffix = string.sub(str, string.len(str) - 15, string.len(str))
-    local delimiter = " ... "
+    local suffix_length = config.cmp_label_shorten_length - 23
+    local short_suffix = string.sub(str, string.len(str) - suffix_length, string.len(str))
+    local delimiter = " … "
     return short_prefix .. delimiter .. short_suffix
   end
 
   text = text:gsub("^%s*", "")
-  return string.len(text) > 40 and shorten(text) or text
+  return string.len(text) > config.cmp_label_shorten_length and shorten(text) or text
 end
 
 function source.get_trigger_characters()
