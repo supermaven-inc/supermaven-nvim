@@ -6,12 +6,34 @@ local api = require("supermaven-nvim.api")
 
 local M = {}
 
+local first_time_setup = true
+
 M.setup = function(args)
+
+  -- Remove old keymaps
+  if not first_time_setup and not config.disable_inline_completion and not config.disable_keymaps then
+    if config.keymaps.accept_suggestion ~= nil then
+      local accept_suggestion_key = config.keymaps.accept_suggestion
+      vim.keymap.del("i", accept_suggestion_key)
+    end
+
+    if config.keymaps.accept_word ~= nil then
+      local accept_word_key = config.keymaps.accept_word
+      vim.keymap.del("i", accept_word_key)
+    end
+
+    if config.keymaps.clear_suggestion ~= nil then
+      local clear_suggestion_key = config.keymaps.clear_suggestion
+      vim.keymap.del("i", clear_suggestion_key)
+    end
+  end
+
   config.setup(args)
 
-  if config.disable_inline_completion then
-    completion_preview.disable_inline_completion = true
-  elseif not config.disable_keymaps then
+  completion_preview.disable_inline_completion = config.disable_inline_completion
+
+  -- Add new keymaps
+  if not config.disable_inline_completion and not config.disable_keymaps then
     if config.keymaps.accept_suggestion ~= nil then
       local accept_suggestion_key = config.keymaps.accept_suggestion
       vim.keymap.set(
@@ -38,21 +60,25 @@ M.setup = function(args)
     end
   end
 
-  commands.setup()
+  if first_time_setup then
+    commands.setup()
 
-  local cmp_ok, cmp = pcall(require, "cmp")
-  if cmp_ok then
-    local cmp_source = require("supermaven-nvim.cmp")
-    cmp.register_source("supermaven", cmp_source.new())
-  else
-    if config.disable_inline_completion then
-      log:warn(
-        "nvim-cmp is not available, but inline completion is disabled. Supermaven nvim-cmp source will not be registered."
-      )
+    local cmp_ok, cmp = pcall(require, "cmp")
+    if cmp_ok then
+      local cmp_source = require("supermaven-nvim.cmp")
+      cmp.register_source("supermaven", cmp_source.new())
+    else
+      if config.disable_inline_completion then
+        log:warn(
+          "nvim-cmp is not available, but inline completion is disabled. Supermaven nvim-cmp source will not be registered."
+        )
+      end
     end
-  end
 
-  api.start()
+    api.start()
+
+    first_time_setup = false
+  end
 end
 
 return M
