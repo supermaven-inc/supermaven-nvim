@@ -7,6 +7,8 @@ local default_config = {
   ignore_filetypes = {},
   disable_inline_completion = false,
   disable_keymaps = false,
+  single_line_suggestion_newline = false,
+  show_diff_only = false,
   condition = function()
     return false
   end,

@@ -37,8 +37,9 @@ M.setup = function(args)
       vim.keymap.set("i", clear_suggestion_key, completion_preview.on_dispose_inlay, { noremap = true, silent = true })
     end
   end
-
   commands.setup()
+  completion_preview.single_line_suggestion_newline = config.single_line_suggestion_newline
+  completion_preview.show_diff_only = config.show_diff_only
 
   local cmp_ok, cmp = pcall(require, "cmp")
   if cmp_ok then

@@ -5,6 +5,8 @@ local CompletionPreview = {
   ns_id = vim.api.nvim_create_namespace("supermaven"),
   suggestion_group = "Comment",
   disable_inline_completion = false,
+  single_line_suggestion_newline = false,
+  show_diff_only = false,
 }
 
 CompletionPreview.__index = CompletionPreview
@@ -38,8 +40,7 @@ function CompletionPreview:render_with_inlay(
   local other_lines = processed_text.other_lines
 
   local is_floating = (#line_after_cursor > 0) and (not u.contains(first_line, line_after_cursor))
-
-  if is_floating then
+  if not self.single_line_suggestion_newline and is_floating then
     self:render_floating(first_line, opts, buf, line_before_cursor)
     completion_text = first_line
   else
@@ -76,15 +77,36 @@ function CompletionPreview:render_standard(first_line, other_lines, opts, buf)
     return
   end
 
-  if first_line ~= "" then
-    opts.virt_text = { { first_line, self.suggestion_group } }
-  end
-  if #other_lines > 0 then
-    opts.virt_lines = other_lines
-  end
-
   opts.virt_text_win_col = vim.fn.virtcol(".") - 1
-
+  if self.single_line_suggestion_newline then
+    opts.virt_lines = {}
+    if first_line ~= "" then
+      local padding
+      if self.show_diff_only then
+        padding = string.rep(" ", opts.virt_text_win_col)
+      else
+        padding = string.sub(vim.api.nvim_get_current_line(), 1, opts.virt_text_win_col)
+      end
+      opts.virt_lines = {
+        {
+          { padding, self.suggestion_group },
+          { first_line, self.suggestion_group },
+        },
+      }
+    end
+    if #other_lines > 0 then
+      for _, line in ipairs(other_lines) do
+        table.insert(opts.virt_lines, line)
+      end
+    end
+  else
+    if first_line ~= "" then
+      opts.virt_text = { { first_line, self.suggestion_group } }
+    end
+    if #other_lines > 0 then
+      opts.virt_lines = other_lines
+    end
+  end
   local _extmark_id = vim.api.nvim_buf_set_extmark(buf, self.ns_id, vim.fn.line(".") - 1, vim.fn.col(".") - 1, opts) -- :h api-extended-marks
 end
 
