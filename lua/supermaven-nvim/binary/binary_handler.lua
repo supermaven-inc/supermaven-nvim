@@ -81,7 +81,8 @@ end
 ---@param file_name string
 ---@param event_type "text_changed" | "cursor"
 function BinaryLifecycle:on_update(buffer, file_name, event_type)
-  if config.ignore_filetypes[vim.bo.ft] or vim.tbl_contains(config.ignore_filetypes, vim.bo.filetype) then
+
+  if config.ignore_filetypes[vim.bo.ft] or config.condition() or vim.tbl_contains(config.ignore_filetypes, vim.bo.filetype) then
     return
   end
   local buffer_text = u.get_text(buffer)
@@ -268,7 +269,7 @@ function BinaryLifecycle:provide_inline_completion_items(buffer, cursor, context
 end
 
 function BinaryLifecycle:poll_once()
-  if config.ignore_filetypes[vim.bo.ft] or vim.tbl_contains(config.ignore_filetypes, vim.bo.filetype) then
+  if config.ignore_filetypes[vim.bo.ft] or config.condition() or vim.tbl_contains(config.ignore_filetypes, vim.bo.filetype) then
     return
   end
   local now = loop.now()
