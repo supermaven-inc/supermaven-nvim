@@ -83,9 +83,12 @@ function CompletionPreview:render_standard(first_line, other_lines, opts, buf)
     opts.virt_lines = other_lines
   end
 
-  opts.virt_text_win_col = vim.fn.virtcol(".") - 1
+  opts.virt_text_pos = "overlay"
+  local pos = vim.api.nvim_win_get_cursor(0)
+  local row = pos[1] - 1
+  local col = pos[2]
 
-  local _extmark_id = vim.api.nvim_buf_set_extmark(buf, self.ns_id, vim.fn.line(".") - 1, vim.fn.col(".") - 1, opts) -- :h api-extended-marks
+  local _extmark_id = vim.api.nvim_buf_set_extmark(buf, self.ns_id, row, col, opts) -- :h api-extended-marks
 end
 
 function CompletionPreview:dispose_inlay()
