@@ -26,12 +26,10 @@ function BinaryFetcher:platform()
   local os = self.os_uname.sysname
   if os == "Darwin" then
     return "macosx"
-  elseif os == "Linux" then
-    return "linux"
-  elseif os == "Windows_NT" then
+  elseif os == "Windows_NT" or os:match("MINGW") then
     return "windows"
   end
-  return ""
+  return "linux"
 end
 
 function BinaryFetcher:get_arch()
