@@ -3,11 +3,13 @@ local log = require("supermaven-nvim.logger")
 local config = require("supermaven-nvim.config")
 local commands = require("supermaven-nvim.commands")
 local api = require("supermaven-nvim.api")
+local binary_fetcher = require("supermaven-nvim.binary.binary_fetcher")
 
 local M = {}
 
 M.setup = function(args)
   config.setup(args)
+  config.binary_path = binary_fetcher:fetch_binary()
 
   if config.disable_inline_completion then
     completion_preview.disable_inline_completion = true

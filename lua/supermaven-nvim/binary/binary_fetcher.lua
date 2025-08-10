@@ -1,4 +1,5 @@
 local log = require("supermaven-nvim.logger")
+local config = require("supermaven-nvim.config")
 local u = require("supermaven-nvim.util")
 
 local loop = u.uv
@@ -80,7 +81,7 @@ function BinaryFetcher:discover_binary_url()
 end
 
 function BinaryFetcher:fetch_binary()
-  local local_binary_path = self:local_binary_path()
+  local local_binary_path = config.agent_path or self:local_binary_path()
   local status = loop.fs_stat(local_binary_path)
   if status ~= nil then
     return local_binary_path

@@ -11,6 +11,7 @@ local default_config = {
     return false
   end,
   log_level = "info",
+  agent_path = nil,
 }
 
 local M = {

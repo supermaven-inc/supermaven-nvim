@@ -4,10 +4,7 @@ local loop = u.uv
 local textual = require("supermaven-nvim.textual")
 local config = require("supermaven-nvim.config")
 local preview = require("supermaven-nvim.completion_preview")
-local binary_fetcher = require("supermaven-nvim.binary.binary_fetcher")
 local log = require("supermaven-nvim.logger")
-
-local binary_path = binary_fetcher:fetch_binary()
 
 local BinaryLifecycle = {
   state_map = {},
@@ -43,7 +40,7 @@ function BinaryLifecycle:start_binary()
   self.last_path = nil
   self.last_context = nil
   self.wants_polling = false
-  self.handle = loop.spawn(binary_path, {
+  self.handle = loop.spawn(config.binary_path, {
     args = {
       "stdio",
     },

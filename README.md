@@ -56,6 +56,7 @@ require("supermaven-nvim").setup({
   condition = function()
     return false
   end -- condition to check for stopping supermaven, `true` means to stop supermaven when the condition is true.
+  agent_path = "path/to/sm-agent" -- path to sm-agent binary
 })
 ```
 
