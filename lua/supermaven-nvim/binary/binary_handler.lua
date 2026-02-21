@@ -79,7 +79,7 @@ end
 
 ---@param buffer integer
 ---@param file_name string
----@param event_type "text_changed" | "cursor"
+---@param event_type "text_changed" | "cursor" | "manual"
 function BinaryLifecycle:on_update(buffer, file_name, event_type)
   if config.ignore_filetypes[vim.bo.ft] or vim.tbl_contains(config.ignore_filetypes, vim.bo.filetype) then
     return
@@ -93,7 +93,7 @@ function BinaryLifecycle:on_update(buffer, file_name, event_type)
 
   self:document_changed(file_path, buffer_text)
   local cursor = api.nvim_win_get_cursor(0)
-  local completion_is_allowed = (buffer_text ~= self.last_text) and (self.last_path == file_name)
+  local completion_is_allowed = event_type == "manual" or (config.polite_mode ~= true and (buffer_text ~= self.last_text) and (self.last_path == file_name))
   local context = {
     document_text = buffer_text,
     cursor = cursor,
@@ -101,7 +101,7 @@ function BinaryLifecycle:on_update(buffer, file_name, event_type)
   }
   if completion_is_allowed then
     self:provide_inline_completion_items(buffer, cursor, context)
-  elseif not self:same_context(context) then
+  elseif (not self:same_context(context) or event_type ~= "manual") then
     preview:dispose_inlay()
   end
 

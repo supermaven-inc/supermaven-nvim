@@ -3,10 +3,12 @@ local default_config = {
     accept_suggestion = "<Tab>",
     clear_suggestion = "<C-]>",
     accept_word = "<C-j>",
+    polite_suggestion = "<C-l>",
   },
   ignore_filetypes = {},
   disable_inline_completion = false,
   disable_keymaps = false,
+  polite_mode = false,
   condition = function()
     return false
   end,
