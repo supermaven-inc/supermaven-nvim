@@ -129,7 +129,9 @@ function BinaryFetcher:fetch_binary()
 end
 
 function BinaryFetcher:local_binary_path()
-  if self:platform() == "windows" then
+  if vim.env.SUPERMAVEN_BINARY ~= nil then
+    return vim.env.SUPERMAVEN_BINARY
+  elseif self:platform() == "windows" then
     return self:local_binary_parent_path() .. "/sm-agent.exe"
   else
     return self:local_binary_parent_path() .. "/sm-agent"
